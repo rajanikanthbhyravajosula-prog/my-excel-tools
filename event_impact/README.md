@@ -1,0 +1,41 @@
+# Event Impact Analyzer
+
+Measures the market's **fear and greed** around news events and turns it into numbers for the trading model.
+
+Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
+
+## What it answers
+
+| Question | Sheet |
+|---|---|
+| How does Nifty react before, during and after elections, budgets, RBI rate changes, crude shocks and global shocks? | Category_Summary, Nifty_Impact |
+| How do markets react to positive vs negative news, surprise vs expected? | Category_Summary (second table) |
+| How long until the market settles (price recovered, India VIX normal)? | Category_Summary, Nifty_Impact |
+| Who made the money: buying before, on the event day or after? R:R of each? | Category_Summary (third table) |
+| Which watchlist stocks are hit hardest, and which stay resilient in fear? | Top_Lists, Stock_Scorecard |
+| Which industries gain or lose for each event type? | Sector_Impact |
+| At what size of crude move / crude price level does the market react? | Crude_Ranges |
+| What do FII and DII flows do to Nifty? | FII_DII |
+| How should I adjust my short-term and long-term targets for an upcoming event? | Target_Adjuster |
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `events.csv` | Event calendar with news context (edit to add events) |
+| `watchlist.csv` | Watchlist symbols, industry and market-cap group |
+| `fii_dii_daily.csv` | Daily FII/DII data from the shares worksheet tracker |
+| `download_data.py` | Downloads daily prices from Yahoo Finance into `data/prices/` |
+| `analyze.py` | Measures every event for Nifty and each stock |
+| `build_workbook.py` | Builds the Excel workbook (summaries are live formulas) |
+
+## Updating
+
+```bash
+pip install yfinance pandas openpyxl
+python download_data.py --refresh   # needs network access to query1/query2.finance.yahoo.com and fc.yahoo.com
+python analyze.py
+python build_workbook.py
+```
+
+Open the workbook in Excel and it recalculates automatically.
