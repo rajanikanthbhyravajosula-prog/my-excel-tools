@@ -38,6 +38,13 @@ GLOBAL = {
     "G_TAIWAN_TAIEX": "^TWII",
     "G_BRAZIL_BOVESPA": "^BVSP",
     "G_INDONESIA_JCI": "^JKSE",
+    # US rates, volatility, dollar and gold (used by us_link_study.py)
+    "US_10Y": "^TNX",
+    "US_3M": "^IRX",
+    "US_30Y": "^TYX",
+    "US_VIX": "^VIX",
+    "DXY": "DX-Y.NYB",
+    "GOLD": "GC=F",
 }
 
 
