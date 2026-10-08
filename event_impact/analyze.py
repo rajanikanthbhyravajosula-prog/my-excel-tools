@@ -201,7 +201,17 @@ CRISES = [
      "Global inflation, aggressive Fed hikes, Russia-Ukraine war and record FII selling."),
     ("FII exodus and US tariff correction 2024-25", "2024-09-01", "2025-04-30",
      "Record FII selling, slowing earnings and US tariff shock."),
+    ("Iran war and oil shock 2026 (ongoing)", "2025-12-01", "2026-12-31",
+     "Budget STT hike, then the US-Israel war on Iran from 28-Feb: Hormuz closed, Brent above $110, record FPI "
+     "selling, rupee at record lows. Ceasefire in April collapsed in July; Brent back above $100 in September."),
 ]
+COUNTRIES = {  # file name -> label (local-currency price indices from Yahoo Finance)
+    "G_US_SP500": "USA (S&P 500)", "G_US_NASDAQ": "USA tech (Nasdaq)", "G_UK_FTSE100": "UK (FTSE 100)",
+    "G_GERMANY_DAX": "Germany (DAX)", "G_JAPAN_NIKKEI": "Japan (Nikkei 225)",
+    "G_HONGKONG_HANGSENG": "Hong Kong (Hang Seng)", "G_CHINA_SHANGHAI": "China (Shanghai)",
+    "G_KOREA_KOSPI": "South Korea (KOSPI)", "G_TAIWAN_TAIEX": "Taiwan (TAIEX)",
+    "G_BRAZIL_BOVESPA": "Brazil (Bovespa)", "G_INDONESIA_JCI": "Indonesia (JCI)",
+}
 YEAR = 250  # trading days in a year
 MAX_1Y_GAIN = 10.0  # a 1-year gain above +1000% is treated as a data fault
 
@@ -228,6 +238,44 @@ def panic_meter(nifty, vix, usdinr, stocks):
     p["Nifty_Next60"] = c.shift(-60) / c - 1
     p["Nifty_Next250"] = c.shift(-YEAR) / c - 1
     return p
+
+
+def peak_trough(c, start, end):
+    """Peak, bottom and recovery of one price series inside a crisis window."""
+    w = c[start:end]
+    if len(w) < 20 or (w.index[0] - pd.Timestamp(start)).days > 40:
+        return None
+    trough_d = w.idxmin()
+    peak_d = w[:trough_d].idxmax()
+    after = c[trough_d:]
+    rec = after[after >= c[peak_d]]
+    it = c.index.get_loc(trough_d)
+    return {
+        "Peak_Date": peak_d.date().isoformat(), "Trough_Date": trough_d.date().isoformat(),
+        "Fall": c[trough_d] / c[peak_d] - 1, "Days_Down": it - c.index.get_loc(peak_d),
+        "Recovery_Date": rec.index[0].date().isoformat() if len(rec) else None,
+        "Days_To_Recover": (c.index.get_loc(rec.index[0]) - it) if len(rec) else np.nan,
+        "Recovered": 1 if len(rec) else 0,
+        "Ret1Y_After_Trough": c.iloc[it + YEAR] / c.iloc[it] - 1 if it + YEAR < len(c) else np.nan,
+        "Now_Vs_Peak": c.iloc[-1] / c[peak_d] - 1,
+    }
+
+
+def global_crises(nifty, sensex):
+    rows = []
+    for name, start, end, _cause in CRISES:
+        idx, label = (nifty, "India (Nifty)") if pd.Timestamp(start) > nifty.index[0] else (sensex, "India (Sensex)")
+        series = [(label, idx)] + [(lab, load(f)) for f, lab in COUNTRIES.items()]
+        for lab, df in series:
+            if df is None:
+                continue
+            m = peak_trough(df["Close"], start, end)
+            if m:
+                rows.append({"Country": lab.split(" (")[0] if lab.startswith("India") else lab,
+                             "Index": lab, "Crisis": name, **m})
+    out = pd.DataFrame(rows)
+    out.loc[out["Country"] == "India", "Country"] = "India (Nifty/Sensex)"
+    return out
 
 
 def crisis_periods(nifty, sensex, vix, stocks):
@@ -258,6 +306,7 @@ def crisis_periods(nifty, sensex, vix, stocks):
         d20 = up20.index[0] if len(up20) else None
         row = {
             "Crisis": name, "Cause": cause, "Index": idx_name,
+            "Status": "Recovered" if rec_d is not None else "Ongoing / not recovered",
             "Peak_Date": peak_d.date().isoformat(), "Peak": peak,
             "Trough_Date": trough_d.date().isoformat(), "Trough": trough,
             "Fall": trough / peak - 1, "Days_Down": it - ip,
@@ -398,6 +447,9 @@ def main():
     cp, cs = crisis_periods(nifty, sensex, vix, stocks)
     cp.to_csv(OUT / "crisis_periods.csv", index=False)
     cs.to_csv(OUT / "crisis_stocks.csv", index=False)
+    gc = global_crises(nifty, sensex)
+    gc.to_csv(OUT / "global_crises.csv", index=False)
+    print(f"{len(gc)} country-crisis rows")
     print(f"{len(cp)} crisis periods, {len(cs)} stock-crisis rows")
     print(f"{len(nifty_rows)} events, {len(stock_rows)} stock-event rows, {len(d)} market days")
 

@@ -850,6 +850,9 @@ def build_panic(wb, mdc, last_md, last_ni):
 
 
 # ---------------------------------------------------------------- crisis periods
+CRISIS_SECTOR_ROWS = {}
+
+
 def build_crisis(wb, cp, cs, watch, mdc, last_md):
     ws = wb.create_sheet("Crisis_Periods")
     title(ws, "Crisis Periods — recessions and bear markets measured from peak to bottom to full recovery",
@@ -860,7 +863,7 @@ def build_crisis(wb, cp, cs, watch, mdc, last_md):
              "India VIX peak", "Panic Meter peak", "Return 1 year after bottom",
              "PHASE 1: first 10% fall — date", "PHASE 1: further fall after buying", "PHASE 1: 1-year return",
              "PHASE 2: bottom — 1-year return", "PHASE 3: 20% off bottom — date", "PHASE 3: 1-year return",
-             "Practical choice: early vs wait (bottom cannot be timed)", "What caused it"]
+             "Practical choice: early vs wait (bottom cannot be timed)", "What caused it", "Status"]
     header(ws, 4, heads, height=60)
     pc, dc = f"Market_Daily!${mdc['Panic']}$2:${mdc['Panic']}${last_md}", f"Market_Daily!$A$2:$A${last_md}"
     dt = lambda v: pd.Timestamp(v).to_pydatetime() if isinstance(v, str) else None  # noqa: E731
@@ -869,7 +872,7 @@ def build_crisis(wb, cp, cs, watch, mdc, last_md):
                 8: x.Days_Down, 9: dt(x.Recovery_Date) or "Not yet", 10: nz(x.Days_To_Recover), 12: nz(x.VIX_Peak),
                 14: nz(x.Ret1Y_After_Trough), 15: dt(x.Buy10_Date), 16: nz(x.Buy10_FurtherFall),
                 17: nz(x.Buy10_Ret1Y), 18: nz(x.BuyTrough_Ret1Y), 19: dt(x.Buy20Up_Date),
-                20: nz(x.Buy20Up_Ret1Y), 22: x.Cause}
+                20: nz(x.Buy20Up_Ret1Y), 22: x.Cause, 23: x.Status}
         for c, v in vals.items():
             ws.cell(r, c, v)
         ws.cell(r, 7, f"=F{r}/D{r}-1")
@@ -879,10 +882,10 @@ def build_crisis(wb, cp, cs, watch, mdc, last_md):
                        f'"Waiting for the 20% bounce paid more"))')
     end = 4 + len(cp)
     avg_r = end + 1
-    ws.cell(avg_r, 1, "AVERAGE of all crises").font = F_BOLD
-    for col in "GHJKNPQRT":
-        ws[f"{col}{avg_r}"] = f'=IFERROR(AVERAGE({col}5:{col}{end}),"")'
-    style_range(ws, f"A5:V{avg_r}")
+    ws.cell(avg_r, 1, "AVERAGE of recovered crises").font = F_BOLD
+    for col in "GHJKMNPQRT":
+        ws[f"{col}{avg_r}"] = f'=IFERROR(AVERAGEIF($W$5:$W${end},"Recovered",{col}5:{col}{end}),"")'
+    style_range(ws, f"A5:W{avg_r}")
     for col in "CEIOS":
         style_range(ws, f"{col}5:{col}{end}", "dd-mmm-yyyy")
     for col in "DF":
@@ -893,7 +896,7 @@ def build_crisis(wb, cp, cs, watch, mdc, last_md):
         style_range(ws, f"{col}5:{col}{avg_r}", NUM0)
     style_range(ws, f"K5:K{avg_r}", NUM1)
     style_range(ws, f"L5:M{end}", "0")
-    for c in ws[f"A{avg_r}:V{avg_r}"][0]:
+    for c in ws[f"A{avg_r}:W{avg_r}"][0]:
         c.font, c.fill = F_BOLD, FILL_SUB
     for r in range(5, end + 1):
         ws.cell(r, 1).font = F_BOLD
@@ -904,8 +907,51 @@ def build_crisis(wb, cp, cs, watch, mdc, last_md):
     ws.cell(avg_r + 2, 1, "Lesson: buying at the exact bottom is impossible to time. Compare Phase 1 (buy early) with "
                           "Phase 3 (wait for a 20% bounce): Phase 3 gives up some gain but avoids the further fall "
                           "shown in column P.").font = F_NOTE
+    ws.conditional_formatting.add(f"W5:W{end}", CellIsRule(operator="equal", formula=['"Recovered"'], fill=GREEN_FILL))
+    ws.conditional_formatting.add(f"W5:W{end}", CellIsRule(operator="notEqual", formula=['"Recovered"'], fill=RED_FILL))
+
+    # ---- where are we now (last crisis row = the current one)
+    n_ = f"Market_Daily!${mdc['Nifty']}$2:${mdc['Nifty']}${last_md}"
+    d_ = f"Market_Daily!$A$2:$A${last_md}"
+    b_ = f"Market_Daily!${mdc['Breadth']}$2:${mdc['Breadth']}${last_md}"
+    k = end
+    w0 = avg_r + 5
+    ws.cell(w0 - 1, 1, "WHERE ARE WE NOW? The current crisis compared with history (formulas)").font = Font(
+        name=FONT, size=12, bold=True, color="C00000")
+    header(ws, w0, ["Measure", "Value", "Compared with past crises"], height=20)
+    now_rows = [
+        ("Latest date", f"=MAX({d_})", "dd-mmm-yyyy", ""),
+        ("Latest Nifty", f"=INDEX({n_},COUNT({n_}))", "#,##0", ""),
+        ("Peak of this crisis", f"=D{k}", "#,##0", ""),
+        ("Lowest close so far", f"=F{k}", "#,##0", ""),
+        ("Fall at the low so far", f"=G{k}", PCT, f'=IFERROR("Average past fall: "&TEXT(G{avg_r},"0%"),"")'),
+        ("Nifty now vs peak", f"=B{w0 + 2}/B{w0 + 3}-1", PCT, ""),
+        ("Nifty now vs the low", f"=B{w0 + 2}/B{w0 + 4}-1", PCT, "20% above the low has confirmed recoveries in the past"),
+        ("Trading days since the peak", f'=COUNTIFS({d_},">"&C{k})', "0",
+         f'=IFERROR("Average days falling: "&TEXT(H{avg_r},"0"),"")'),
+        ("Share of past crises that fell deeper", f'=IFERROR(COUNTIFS($G$5:$G${k - 1},"<"&G{k})/COUNT($G$5:$G${k - 1}),"")',
+         PCT, ""),
+        ("Panic Meter peak in this crisis", f"=M{k}", "0", f'=IFERROR("Average panic peak at past bottoms: "&TEXT(M{avg_r},"0"),"")'),
+        ("Panic Meter now", "=Panic_Meter!$B$14", "0", "Fear 60-80, Panic 80+ have marked past bottoms"),
+        ("Nifty vs its 200-day average", f"=B{w0 + 2}/AVERAGE(INDEX({n_},COUNT({n_})-199):INDEX({n_},COUNT({n_})))-1",
+         PCT, "Below zero = long-term trend still down"),
+        ("Watchlist stocks below 200-day average", f"=INDEX({b_},COUNT({n_}))", PCT, ""),
+        ("PHASE NOW", f'=IF(B{w0 + 2}>=B{w0 + 3},"Recovered: back at the peak",IF(B{w0 + 2}<=B{w0 + 4}*1.03,'
+                      f'"Testing the low (within 3%)",IF(B{w0 + 2}>=B{w0 + 4}*1.2,"Recovery confirmed (20%+ above the low)",'
+                      f'"Bounce off the low, recovery not confirmed")))', None, ""),
+    ]
+    for i, (label, f, fmt, cmp_) in enumerate(now_rows):
+        r = w0 + 1 + i
+        ws.cell(r, 1, label).font = F_BOLD if label == "PHASE NOW" else F_BASE
+        c = ws.cell(r, 2, f)
+        c.font, c.border, c.fill = F_BOLD, BOX, FILL_OUT
+        if fmt:
+            c.number_format = fmt
+        if cmp_:
+            ws.cell(r, 3, cmp_).font = F_NOTE
+    ws.conditional_formatting.add(f"B{w0 + 10}:B{w0 + 11}", panic_scale())
     ws.freeze_panes = "B5"
-    widths(ws, {"A": 40, "V": 70})
+    widths(ws, {"A": 40, "V": 70, "W": 22})
     for i in range(2, 22):
         ws.column_dimensions[L(i)].width = 12
 
@@ -989,10 +1035,47 @@ def build_crisis(wb, cp, cs, watch, mdc, last_md):
     style_range(wsx, f"B5:{L(k + 1)}{iend}", PCT)
     wsx.conditional_formatting.add(f"B5:{L(k)}{iend}", scale3())
     wsx.conditional_formatting.add(f"{L(k + 1)}5:{L(k + 1)}{iend}", scale3())
+    # stocks per industry (best/worst lists use only industries with at least 3 watchlist stocks)
+    cnt_col = L(k + 2)
+    header(wsx, 4, ["Watchlist stocks"], col=k + 2, height=75)
+    for r, ind in enumerate(industries, start=5):
+        wsx.cell(r, k + 2, f'=COUNTIF(Crisis_Scorecard!$C$5:$C${send},$A{r})').border = BOX
+    cnt = f"${cnt_col}$5:${cnt_col}${iend}"
+    # best / worst industry per crisis (fall)
+    ind_rng = f"$A$5:$A${iend}"
+    br = iend + 1
+    for off, (lab, fn) in enumerate((("Held up best in the fall", "MAX"), ("Hit hardest in the fall", "MIN"))):
+        r = br + off
+        wsx.cell(r, 1, lab).font = F_BOLD
+        for j in range(len(crises)):
+            col = L(2 + j)
+            c = wsx.cell(r, 2 + j, f'=IFERROR(INDEX({ind_rng},MATCH(_xlfn.{fn}IFS({col}5:{col}{iend},{cnt},">=3"),{col}5:{col}{iend},0)),"")')
+            c.font, c.fill, c.alignment = F_BOLD, FILL_SUB, Alignment(wrap_text=True)
+    # 1-year after bottom matrix
+    y0 = br + 4
+    wsx.cell(y0 - 1, 1, "Average 1-year return after the market bottom, by industry and crisis (where the money went in the recovery)").font = F_BOLD
+    header(wsx, y0, ["Industry"] + crises, height=75)
+    for i, ind in enumerate(industries):
+        r = y0 + 1 + i
+        wsx.cell(r, 1, ind).font = F_BOLD
+        for j in range(len(crises)):
+            wsx.cell(r, 2 + j, f'=IFERROR(AVERAGEIFS({rng("J")},{rng("C")},$A{r},{rng("B")},{L(2 + j)}${y0}),"")')
+    yend = y0 + len(industries)
+    style_range(wsx, f"B{y0 + 1}:{L(1 + len(crises))}{yend}", PCT)
+    wsx.conditional_formatting.add(f"B{y0 + 1}:{L(1 + len(crises))}{yend}", scale3())
+    ind_rng2 = f"$A${y0 + 1}:$A${yend}"
+    for off, (lab, fn) in enumerate((("Recovery leader", "MAX"), ("Recovery laggard", "MIN"))):
+        r = yend + 1 + off
+        wsx.cell(r, 1, lab).font = F_BOLD
+        for j in range(len(crises)):
+            col = L(2 + j)
+            c = wsx.cell(r, 2 + j, f'=IFERROR(INDEX({ind_rng2},MATCH(_xlfn.{fn}IFS({col}{y0 + 1}:{col}{yend},{cnt},">=3"),{col}{y0 + 1}:{col}{yend},0)),"")')
+            c.font, c.fill, c.alignment = F_BOLD, FILL_SUB, Alignment(wrap_text=True)
     wsx.freeze_panes = "B5"
     widths(wsx, {"A": 22})
     for i in range(2, k + 2):
         wsx.column_dimensions[L(i)].width = 12
+    CRISIS_SECTOR_ROWS.update(best=br, worst=br + 1, lead=yend + 1, lag=yend + 2, n=len(crises))
     return send
 
 
@@ -1016,6 +1099,173 @@ def add_crisis_top_lists(wb, send, top=20):
         for col in "GHIK":
             style_range(ws, f"{col}{r0 + 1}:{col}{r0 + top}", PCT)
         style_range(ws, f"J{r0 + 1}:J{r0 + top}", NUM0)
+
+
+# ---------------------------------------------------------------- global recovery
+def build_global(wb, gc, crises):
+    wd = wb.create_sheet("Global_Crisis_Data")
+    cols = ["Country", "Index", "Crisis", "Peak date", "Bottom date", "Fall", "Trading days falling",
+            "Recovery date", "Trading days to recover", "Recovered? (1=yes)", "1-year return after bottom",
+            "Today vs that crisis peak"]
+    header(wd, 1, cols, height=45)
+    dt = lambda v: pd.Timestamp(v).to_pydatetime() if isinstance(v, str) else "Not yet"  # noqa: E731
+    for r, x in enumerate(gc.itertuples(index=False), start=2):
+        for c, v in enumerate([x.Country, x.Index, x.Crisis, dt(x.Peak_Date), dt(x.Trough_Date), x.Fall, x.Days_Down,
+                               dt(x.Recovery_Date), nz(x.Days_To_Recover), x.Recovered, nz(x.Ret1Y_After_Trough),
+                               x.Now_Vs_Peak], start=1):
+            wd.cell(r, c, v)
+    last = len(gc) + 1
+    for col, fmt in (("D", "dd-mmm-yyyy"), ("E", "dd-mmm-yyyy"), ("H", "dd-mmm-yyyy"), ("F", PCT), ("K", PCT), ("L", PCT)):
+        for c in wd[f"{col}2:{col}{last}"]:
+            c[0].number_format = fmt
+    wd.freeze_panes = "B2"
+    wd.auto_filter.ref = f"A1:L{last}"
+    widths(wd, {"A": 22, "B": 24, "C": 40})
+
+    rng = lambda c: f"Global_Crisis_Data!${c}$2:${c}${last}"  # noqa: E731
+    ws = wb.create_sheet("Global_Recovery")
+    title(ws, "Global Recovery — how each country's stock market fell and recovered in every crisis (formulas)",
+          "Local-currency price indices (no dividends). Peak and bottom are found inside each crisis window. "
+          "'Not yet' = the index has never regained that crisis peak.")
+    countries = list(dict.fromkeys(gc["Country"]))
+    nc = len(crises)
+
+    def matrix(r0, label, col, fmt, not_yet=False):
+        ws.cell(r0 - 1, 1, label).font = F_BOLD
+        header(ws, r0, ["Country"] + crises, height=75)
+        for i, ctry in enumerate(countries):
+            r = r0 + 1 + i
+            ws.cell(r, 1, ctry).font = F_BOLD
+            for j in range(nc):
+                h = f"{L(2 + j)}${r0}"
+                f = f'AVERAGEIFS({rng(col)},{rng("A")},$A{r},{rng("C")},{h})'
+                if not_yet:
+                    f = f'IF(COUNTIFS({rng("A")},$A{r},{rng("C")},{h},{rng("J")},0)>0,"Not yet",{f})'
+                ws.cell(r, 2 + j, f'=IFERROR({f},"")')
+        end = r0 + len(countries)
+        style_range(ws, f"B{r0 + 1}:{L(1 + nc)}{end}", fmt)
+        return end
+
+    a0 = 5
+    aend = matrix(a0, "A. Fall from peak to bottom", "F", PCT)
+    ws.conditional_formatting.add(f"B{a0 + 1}:{L(1 + nc)}{aend}", scale3())
+    # summary to the right of A
+    sc = 3 + nc
+    header(ws, a0, ["Crises measured", "Average fall", "Crises not yet recovered", "Avg trading days to recover",
+                    "Avg 1-year return after bottom", "Today vs latest crisis peak",
+                    "Resilience score (avg fall - 5% per unrecovered crisis)", "Resilience rank (1 = best)"],
+           col=sc, height=75)
+    for i, ctry in enumerate(countries):
+        r = a0 + 1 + i
+        ws.cell(r, sc, f'=COUNTIF({rng("A")},$A{r})')
+        ws.cell(r, sc + 1, f'=IFERROR(AVERAGEIFS({rng("F")},{rng("A")},$A{r}),"")')
+        ws.cell(r, sc + 2, f'=COUNTIFS({rng("A")},$A{r},{rng("J")},0)')
+        ws.cell(r, sc + 3, f'=IFERROR(AVERAGEIFS({rng("I")},{rng("A")},$A{r},{rng("J")},1),"")')
+        ws.cell(r, sc + 4, f'=IFERROR(AVERAGEIFS({rng("K")},{rng("A")},$A{r}),"")')
+        ws.cell(r, sc + 5, f'=IFERROR(AVERAGEIFS({rng("L")},{rng("A")},$A{r},{rng("C")},{L(1 + nc)}${a0}),"")')
+        avgf, notrec = f"{L(sc + 1)}{r}", f"{L(sc + 2)}{r}"
+        ws.cell(r, sc + 6, f'=IF({avgf}="","",{avgf}-0.05*{notrec})')
+        scr = f"${L(sc + 6)}${a0 + 1}:${L(sc + 6)}${aend}"
+        ws.cell(r, sc + 7, f'=IF({L(sc + 6)}{r}="","",RANK({L(sc + 6)}{r},{scr},0))')
+    style_range(ws, f"{L(sc)}{a0 + 1}:{L(sc + 7)}{aend}")
+    for k in (1, 4, 5, 6):
+        style_range(ws, f"{L(sc + k)}{a0 + 1}:{L(sc + k)}{aend}", PCT)
+    style_range(ws, f"{L(sc + 3)}{a0 + 1}:{L(sc + 3)}{aend}", NUM0)
+    ws.conditional_formatting.add(f"{L(sc + 5)}{a0 + 1}:{L(sc + 5)}{aend}", scale3())
+
+    b0 = aend + 4
+    bend = matrix(b0, "B. Trading days from bottom to full recovery ('Not yet' = never regained the peak)", "I", NUM0, True)
+    ws.conditional_formatting.add(f"B{b0 + 1}:{L(1 + nc)}{bend}", CellIsRule(operator="equal", formula=['"Not yet"'], fill=RED_FILL))
+    c0 = bend + 4
+    cend = matrix(c0, "C. Return in the year after the bottom (strength of the rebound)", "K", PCT)
+    ws.conditional_formatting.add(f"B{c0 + 1}:{L(1 + nc)}{cend}", scale3())
+    ws.cell(cend + 2, 1, "Rank method: average fall, with each crisis the market never recovered from counted as an "
+                         "extra 5% fall. Rank 1 = most resilient market.").font = F_NOTE
+    ws.freeze_panes = "B5"
+    widths(ws, {"A": 22})
+    for i in range(2, sc + 9):
+        ws.column_dimensions[L(i)].width = 12
+
+
+# ---------------------------------------------------------------- strategy shifts
+SHIFTS = [
+    ("Q1 2022", "Inflation, Fed hikes, Ukraine war", "Foreign investors sold a record net $13.5 billion of Indian equities in the "
+     "first quarter of 2022.", "FPIs exit emerging markets when the Fed tightens and oil rises; DIIs absorbed the selling.",
+     "https://www.business-standard.com/article/markets/street-signs-record-fpi-sell-off-nifty-nears-resistance-zone-and-more-122062600651_1.html"),
+    ("Oct 2024", "'Buy China, sell India'", "About $10 billion of foreign money left Indian equities in October 2024 as China "
+     "announced stimulus; strategists such as Jefferies' Chris Wood raised China at India's expense.",
+     "Rich valuations plus a cheaper alternative market trigger tactical rotation away from India.",
+     "https://invezz.com/de/news/2024/10/21/rekord-abfluss-von-10-milliarden-us-dollar-aus-auslandischen-investmentfonds-erschuttert-den-indischen-aktienmarkt-im-oktober-ist-china-schuld/"),
+    ("Mar-Apr 2025", "Jefferies GREED & fear", "Added 2 points to China and cut India and Korea by 1 point each (March); "
+     "in April advised cutting US stocks in favour of Europe, China and India.",
+     "Global allocators move country weights in small steps; India regained favour as the US tariff shock hit.",
+     "https://www.businesstoday.in/amp/markets/story/greed-fear-jefferies-cuts-india-weight-ups-chinas-says-this-on-fed-rate-cut-467101-2025-03-07"),
+    ("Mar 2025", "Domestic investors overtake foreigners", "DIIs held 17.62% of NSE-listed companies vs 17.22% for FPIs, the "
+     "first time since tracking began in 2009; by Mar-2026 DIIs held a record 20.9% of the Nifty 500.",
+     "SIP and insurance money now cushions FII selling: falls are shallower than FII flows alone would suggest.",
+     "https://www.business-standard.com/markets/news/diis-surpass-fpis-in-ownership-of-nse-listed-firms-in-march-2025-125050200426_1.html"),
+    ("Feb 2026", "BofA Fund Manager Survey", "'Long gold' was the most crowded trade.",
+     "Investors were already hedging before the Iran war.",
+     "https://investinglive.com/news/ai-bubble-top-tail-risk-long-gold-most-crowded-trade-according-to-bofa-survey-20260217/"),
+    ("Mar 2026", "BofA Fund Manager Survey", "Cash rose to about 4.2-4.3%, the largest monthly jump since 2020; equity "
+     "overweight cut to a net 37%, commodities kept.", "Defensive turn: cash and commodities up, equities down.",
+     "https://www.scmp.com/business/china-business/article/3347009/iran-conflict-drives-fund-managers-slash-risk-and-hoard-cash-bofa-survey-shows"),
+    ("Mar 2026", "BofA (Hartnett): winners and losers of a long Iran war", "Winners: oil, US dollar, US tech, global "
+     "defence. Losers: oil importers.", "India, as a large oil importer, sits on the losing side of this playbook.",
+     "https://www.investing.com/news/stock-market-news/bofas-hartnett-flags-asset-winners-and-losers-from-prolonged-iran-war-4546287"),
+    ("Apr 2026", "BofA Fund Manager Survey", "Growth expectations cut by the most in four years; 'long oil' became one of the "
+     "most crowded trades; cash 4.3%, still below the 5% contrarian buy signal.",
+     "No capitulation yet: fear was high but positioning was not at extreme levels.",
+     "https://www.bloomberg.com/news/articles/2026-04-14/investors-slash-growth-views-by-most-in-four-years-bofa-says"),
+    ("Apr 2026", "Indian brokerages cut Nifty targets", "Average 12-month Nifty target cut 3.8% (29,899 to 28,748) two months "
+     "into the war; one brokerage cut its target to 25,900 from 29,300.",
+     "Forecasters cut targets after the fall, not before it (see Forecast_Studies).",
+     "https://www.business-standard.com/amp/markets/news/iran-war-impact-nifty-target-cut-2026-brokerages-flag-oil-inflation-risks-india-126042801604_1.html"),
+    ("May 2026", "BofA Fund Manager Survey", "Biggest monthly jump in equity allocation since 2001; cyclicals over defensives "
+     "at the highest since Jan-2018; 73% named 'long semiconductors' the most crowded trade.",
+     "After the ceasefire, managers swung quickly from fear to greed; crowding moved to AI/semiconductors.",
+     "https://www.axios.com/2026/05/20/fund-managers-stocks-bofa"),
+    ("2026 YTD", "Record FPI selling in India", "Net FPI equity outflows of roughly Rs 2.7 lakh crore by 1-Oct-2026, above any "
+     "previous full year; March alone about Rs 1.17 lakh crore (aggregator figures based on NSDL; please verify).",
+     "Foreign money left India for oil-exporter safety, the dollar and East Asian AI markets.",
+     "https://www.kotakneo.com/news/market-news/fpi-outflow-2026-nears-30-billion-record-foreign-selling/"),
+]
+
+
+def build_strategy(wb, crises):
+    ws = wb.create_sheet("Strategy_Shifts")
+    title(ws, "Strategy Shifts — where professional money moved in each crisis",
+          "Part A is measured from your watchlist (formulas from Crisis_Sectors). Part B lists documented strategy "
+          "changes of fund managers and strategists, with sources.")
+    ws["A4"] = "A. Measured sector rotation in each crisis (watchlist industries)"
+    ws["A4"].font = F_BOLD
+    header(ws, 5, ["Crisis", "Held up best in the fall", "Hit hardest in the fall", "Recovery leader (1 year after bottom)",
+                   "Recovery laggard"], height=30)
+    R = CRISIS_SECTOR_ROWS
+    for j, name in enumerate(crises):
+        r = 6 + j
+        col = L(2 + j)
+        ws.cell(r, 1, name).font = F_BOLD
+        for c, key in ((2, "best"), (3, "worst"), (4, "lead"), (5, "lag")):
+            ws.cell(r, c, f"=Crisis_Sectors!{col}{R[key]}")
+    aend = 5 + len(crises)
+    style_range(ws, f"B6:E{aend}")
+    for r in range(6, aend + 1):
+        ws.cell(r, 1).border = BOX
+    ws.cell(aend + 1, 1, "Only industries with at least 3 watchlist stocks are ranked (counts on Crisis_Sectors).").font = F_NOTE
+
+    b0 = aend + 4
+    ws.cell(b0 - 1, 1, "B. Documented strategy shifts of fund managers and strategists").font = F_BOLD
+    header(ws, b0, ["When", "Who / what", "What they did", "Lesson for our system", "Source"], height=30)
+    for i, row in enumerate(SHIFTS):
+        r = b0 + 1 + i
+        for c, v in enumerate(row, start=1):
+            cell = ws.cell(r, c, v)
+            cell.font, cell.border = F_BASE, BOX
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        ws.cell(r, 5).hyperlink = row[4]
+        ws.cell(r, 5).font = Font(name=FONT, size=9, color="0563C1", underline="single")
+    widths(ws, {"A": 40, "B": 30, "C": 60, "D": 50, "E": 40})
 
 
 # ---------------------------------------------------------------- analyst forecasts
@@ -1191,13 +1441,15 @@ def build_howto(wb, n_events, n_stocks, first, last):
         ("Target_Adjuster", "Pick a stock and an upcoming event: get adjusted short/long-term targets and stop-loss."),
         ("Panic_Meter", "Daily 0-100 panic score (VIX, drawdown, speed of fall, breadth, rupee) and what Nifty did "
                         "next at each panic level, for days and for events."),
-        ("Crisis_Periods", "Every recession / bear market since 1997: depth, duration, recovery time, panic peak, "
-                           "and the 1-year return from buying early, at the bottom or after a 20% bounce."),
+        ("Crisis_Periods", "Every recession / bear market since 1997 including the ongoing 2026 Iran-war crisis: depth, "
+                           "duration, recovery, panic peak, buy-early vs wait results, and WHERE ARE WE NOW."),
         ("Crisis_Scorecard, Crisis_Sectors", "How each stock and industry behaved in crises; defenders and "
                                              "recovery leaders are also on Top_Lists."),
+        ("Global_Recovery", "11 world markets plus India: fall, recovery time and rebound in every crisis; which never recovered."),
+        ("Strategy_Shifts", "Sector rotation measured in each crisis, and documented fund-manager strategy changes."),
         ("Forecast_Studies", "Famous research on how accurate expert and analyst predictions are."),
         ("Forecast_Tracker", "Log analyst predictions: the sheet checks them against what Nifty actually did."),
-        ("Stock_Event_Data, Crisis_Stock_Data, Market_Daily", "Raw measurements that the formulas read (do not edit)."),
+        ("Stock_Event_Data, Crisis_Stock_Data, Global_Crisis_Data, Market_Daily", "Raw measurements that the formulas read (do not edit)."),
         ("Colour code", None),
         ("Yellow fill, blue text", "Inputs you can change."),
         ("Black text", "Formulas or measured data; do not type over them."),
@@ -1206,6 +1458,8 @@ def build_howto(wb, n_events, n_stocks, first, last):
         ("Prices", "Yahoo Finance daily prices (split-adjusted), downloaded with download_data.py. Yahoo's Nifty "
                    "history starts Sep-2007, so the 1997-2007 events use Sensex (from Jul-1997). One-day data spikes are removed, "
                    "and stock windows containing an unadjusted split/demerger jump are skipped."),
+        ("Corporate actions", "Prices are adjusted for splits, bonuses and dividends; buybacks need no adjustment. "
+                              "Demergers cannot be adjusted cleanly, so any event or crisis window containing one is skipped."),
         ("Event dates", "Compiled for this analysis from public knowledge: please verify, especially recent and pre-2004 events. "
                         "If an event fell on a holiday or weekend, T0 is the next trading day."),
         ("FII/DII", "Only your Jun-Oct 2026 tracker data is available here; long history must be downloaded from NSE/NSDL."),
@@ -1247,7 +1501,7 @@ def main():
     order = ["Central Election", "Exit Poll", "State Election", "Government Crisis", "Union Budget",
              "Interim Budget", "RBI Rate Hike", "RBI Rate Cut", "RBI Pause", "Crude Spike", "Crude Crash",
              "Bank Collapse", "Pandemic", "Industrial/Supply Shock", "Global Shock", "Geopolitical",
-             "Domestic Shock", "Policy Shock"]
+             "Domestic Shock", "Policy Shock", "US Policy"]
     categories = [c for c in order if c in set(ni["Category"])] + \
                  sorted(set(ni["Category"]) - set(order))
     industries = sorted(watch["Industry"].dropna().unique())
@@ -1270,6 +1524,9 @@ def main():
     cs = pd.read_csv(DATA / "crisis_stocks.csv")
     send = build_crisis(wb, cp, cs, watch, mdc, last_md)
     add_crisis_top_lists(wb, send)
+    gc = pd.read_csv(DATA / "global_crises.csv")
+    build_global(wb, gc, list(cp["Crisis"]))
+    build_strategy(wb, list(cp["Crisis"]))
     build_studies(wb)
     build_tracker(wb, mdc, last_md)
 
@@ -1284,8 +1541,9 @@ def main():
 
     order_sheets = ["How_To_Use", "Settings", "Target_Adjuster", "Panic_Meter", "Category_Summary",
                     "Crisis_Periods", "Top_Lists", "Stock_Scorecard", "Crisis_Scorecard", "Sector_Impact",
-                    "Crisis_Sectors", "Crude_Ranges", "FII_DII", "Forecast_Studies", "Forecast_Tracker",
-                    "Event_Calendar", "Nifty_Impact", "Stock_Event_Data", "Crisis_Stock_Data", "Market_Daily"]
+                    "Crisis_Sectors", "Global_Recovery", "Strategy_Shifts", "Crude_Ranges", "FII_DII", "Forecast_Studies",
+                    "Forecast_Tracker",
+                    "Event_Calendar", "Nifty_Impact", "Stock_Event_Data", "Crisis_Stock_Data", "Global_Crisis_Data", "Market_Daily"]
     wb._sheets = [wb[n] for n in order_sheets]
     wb.active = 0
     for ws in wb.worksheets:

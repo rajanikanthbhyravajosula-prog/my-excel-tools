@@ -1,6 +1,6 @@
 # Event Impact Analyzer
 
-Measures the market's **fear and greed** around news events (elections, budgets, RBI, crude, bank collapses, government crises, blackouts, pandemics, global shocks) and crisis periods since 1997, and turns it into numbers for the trading model.
+Measures the market's **fear and greed** around news events (elections, budgets, RBI, crude, bank collapses, government crises, blackouts, pandemics, global shocks) and crisis periods since 1997 (including the 2026 Iran-war oil shock) across India and 11 world markets, and turns it into numbers for the trading model.
 
 Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
 
@@ -21,6 +21,9 @@ Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
 | How deep and long were past recessions / bear markets, and when was it best to buy? | Crisis_Periods |
 | Which stocks and industries defended best in crises, and which recovered fastest? | Crisis_Scorecard, Crisis_Sectors, Top_Lists |
 | How accurate are expert and analyst predictions? | Forecast_Studies, Forecast_Tracker |
+| Where are we in the current (2026) crisis compared with history? | Crisis_Periods (WHERE ARE WE NOW) |
+| Which countries recovered from each crisis and which did not? | Global_Recovery |
+| Where did professional money move in each crisis? | Strategy_Shifts |
 
 ## Files
 

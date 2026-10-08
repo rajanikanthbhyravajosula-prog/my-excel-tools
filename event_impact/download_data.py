@@ -25,6 +25,21 @@ MARKET = {
     "USDINR": "USDINR=X",
 }
 
+# Global indices for the country recovery comparison (local-currency price indices)
+GLOBAL = {
+    "G_US_SP500": "^GSPC",
+    "G_US_NASDAQ": "^IXIC",
+    "G_UK_FTSE100": "^FTSE",
+    "G_GERMANY_DAX": "^GDAXI",
+    "G_JAPAN_NIKKEI": "^N225",
+    "G_HONGKONG_HANGSENG": "^HSI",
+    "G_CHINA_SHANGHAI": "000001.SS",
+    "G_KOREA_KOSPI": "^KS11",
+    "G_TAIWAN_TAIEX": "^TWII",
+    "G_BRAZIL_BOVESPA": "^BVSP",
+    "G_INDONESIA_JCI": "^JKSE",
+}
+
 
 # Watchlist symbols that Yahoo lists under a different code
 YAHOO_ALIAS = {"LTIM": "LTM"}
@@ -58,7 +73,7 @@ def fetch(name, ticker, refresh):
 def main():
     refresh = "--refresh" in sys.argv
     OUT.mkdir(parents=True, exist_ok=True)
-    jobs = list(MARKET.items()) + [(s, f"{YAHOO_ALIAS.get(s, s)}.NS") for s in watchlist()]
+    jobs = list(MARKET.items()) + list(GLOBAL.items()) + [(s, f"{YAHOO_ALIAS.get(s, s)}.NS") for s in watchlist()]
     for name, ticker in jobs:
         print(f"{name:12s} {fetch(name, ticker, refresh)}", flush=True)
         time.sleep(0.3)

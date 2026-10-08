@@ -51,7 +51,7 @@ Date,Category,News_Tone,Surprise,Headline,Context
 2024-02-01,Interim Budget,Neutral,No,Interim Budget 2024,Vote-on-account before GE 2024; fiscal deficit target lowered.
 2024-07-23,Union Budget,Negative,Partly,Union Budget 2024-25,STT on F&O raised; LTCG raised to 12.5% and STCG to 20%.
 2025-02-01,Union Budget,Positive,No,Union Budget 2025-26,No income tax up to Rs 12 lakh under the new regime (consumption push). Presented on a Saturday with a special trading session.
-2026-02-01,Union Budget,Mixed,No,Union Budget 2026-27,Presented on a Sunday. Please verify market reaction and add notes.
+2026-02-01,Union Budget,Negative,Yes,Union Budget 2026-27,"Presented on a Sunday with a special trading session. STT on futures raised from 0.02% to 0.05% and on options from 0.1% to 0.15%; worst budget-day fall since 2020, capital-market stocks hit hardest."
 2008-06-11,RBI Rate Hike,Negative,No,RBI hikes repo to 8.00%,Inflation-fighting hike as crude oil surged.
 2008-06-24,RBI Rate Hike,Negative,Yes,RBI hikes repo to 8.50%,Unscheduled 50 bps hike; inflation above 11%.
 2008-07-29,RBI Rate Hike,Negative,Partly,RBI hikes repo to 9.00%,Third hike in two months.
@@ -108,7 +108,7 @@ Date,Category,News_Tone,Surprise,Headline,Context
 2025-02-07,RBI Rate Cut,Positive,No,RBI cuts repo to 6.25%,Sanjay Malhotra's first policy; first cut in about five years.
 2025-04-09,RBI Rate Cut,Positive,No,RBI cuts repo to 6.00%,Expected cut amid US tariff turmoil.
 2025-06-06,RBI Rate Cut,Positive,Yes,RBI jumbo cut to 5.50%,"50 bps cut plus a 100 bps CRR cut, both bigger than expected; strong rally in banks and realty."
-2025-12-05,RBI Rate Cut,Positive,Partly,RBI cuts repo to 5.25%,Cut amid low inflation. Please verify.
+2025-12-05,RBI Rate Cut,Positive,Partly,RBI cuts repo to 5.25%,Cut amid low inflation.
 2008-01-21,Global Shock,Negative,Yes,Global sell-off January 2008,US recession fears; Sensex fell sharply on 21-Jan and hit the lower circuit on 22-Jan. Start of the 2008 bear market.
 2008-09-15,Global Shock,Negative,Yes,Lehman Brothers collapse,Lehman filed for bankruptcy; global financial crisis intensified.
 2013-05-23,Global Shock,Negative,Yes,US Fed taper hint (taper tantrum),Bernanke hinted at tapering bond purchases on 22-May; FIIs pulled money from emerging markets; rupee crisis followed.
@@ -174,3 +174,27 @@ Date,Category,News_Tone,Surprise,Headline,Context
 2020-02-24,Pandemic,Negative,Yes,COVID-19 spreads to Italy,Outbreaks in Italy and South Korea started the global crash.
 2021-04-12,Pandemic,Negative,Yes,India COVID second wave,Daily cases crossed 1.5 lakh; lockdowns in Maharashtra and other states.
 2021-11-26,Pandemic,Negative,Yes,Omicron variant,WHO flagged the new Omicron variant; global sell-off.
+2020-11-04,US Policy,Positive,Partly,US election 2020: Biden wins,Vote counting through the week; reduced uncertainty supported global markets.
+2022-03-17,US Policy,Negative,No,US Fed starts hiking (first hike since 2018),"Fed raised rates by 25 bps on 16-Mar, beginning the fastest hiking cycle in decades."
+2024-09-19,US Policy,Positive,Partly,US Fed first rate cut (50 bps),"Fed cut by 50 bps on 18-Sep, more than the 25 bps many expected."
+2024-11-06,US Policy,Mixed,Partly,US election 2024: Trump wins,Trump won; expectations of tariffs and a strong dollar.
+2025-08-07,US Policy,Negative,Yes,US raises tariff on India to 50%,"25% reciprocal tariff from 7-Aug plus an extra 25% penalty for buying Russian oil (order of 6-Aug), effective 27-Aug."
+2025-09-22,US Policy,Negative,Yes,"US H-1B visa fee of $100,000","Proclamation of 19-Sep imposed a $100,000 fee on new H-1B visas; IT stocks fell."
+2026-02-03,US Policy,Positive,Yes,India-US trade deal,Trump announced on 2-Feb that tariffs on India would fall to 18% and the Russian-oil penalty be waived; Sensex jumped up to 5% intraday and closed 2.5% higher.
+2017-10-25,Policy Shock,Positive,Yes,PSU bank recapitalisation (Rs 2.11 lakh crore),Announced on the evening of 24-Oct; PSU bank shares jumped sharply.
+2019-08-26,Policy Shock,Positive,Yes,FPI surcharge rolled back,Budget 2019 super-rich surcharge on FPIs withdrawn on 23-Aug with other stimulus steps.
+2021-11-22,Policy Shock,Neutral,Yes,Farm laws repealed,PM announced repeal of the three farm laws on 19-Nov (a market holiday).
+2025-09-04,Policy Shock,Positive,Partly,GST 2.0 rate cuts,"GST Council (3-Sep) moved to two main slabs (5% and 18%), cutting rates on many consumer goods and autos from 22-Sep."
+2024-10-03,Geopolitical,Negative,Yes,Iran missile attack on Israel and SEBI F&O curbs,Iran fired missiles at Israel on 1-Oct; SEBI tightened F&O rules the same evening; 2-Oct was a holiday.
+2025-06-13,Geopolitical,Negative,Yes,Israel strikes Iran (Twelve-Day War begins),Israel attacked Iranian nuclear and military sites; oil jumped.
+2025-06-23,Geopolitical,Negative,Yes,US strikes Iran nuclear sites,"US bombed Fordow, Natanz and Isfahan on 22-Jun (Sunday)."
+2025-06-24,Geopolitical,Positive,Yes,Israel-Iran ceasefire,"Ceasefire announced; oil fell and markets rallied, ending the Twelve-Day War."
+2026-03-02,Geopolitical,Negative,Yes,US-Israel war on Iran begins,"US and Israel struck Iran on 28-Feb (Saturday), killing Supreme Leader Khamenei; Iran closed the Strait of Hormuz and hit Gulf states. Brent rose from about $72 to over $110."
+2026-04-08,Geopolitical,Positive,Yes,US-Iran two-week ceasefire,Ceasefire and promised reopening of Hormuz; Brent fell about 13%; Sensex rose about 3.9%.
+2026-04-13,Geopolitical,Negative,Partly,US naval blockade of Iran,US imposed a naval blockade on Iranian ports from 13-Apr.
+2026-05-07,Geopolitical,Negative,Partly,US strikes Iran during ceasefire,US airstrikes after Iranian targeting of US warships.
+2026-07-08,Geopolitical,Negative,Yes,Iran ceasefire collapses,Ship attacks on 6-7 Jul and US strikes; the truce was declared over. Please verify.
+2026-09-09,Geopolitical,Negative,Partly,Renewed Iranian missile strikes and Hormuz attacks,Iranian missiles at a US base in Jordan (8-9 Sep) and vessels struck in Hormuz; Brent back above $100. Please verify.
+2026-02-06,RBI Pause,Neutral,No,RBI holds repo at 5.25%,First policy of 2026; held after the December cut.
+2026-05-04,State Election,Positive,Partly,WB/TN/Kerala/Assam 2026 results,BJP won West Bengal for the first time; TVK (Vijay) won Tamil Nadu; Congress-led front won Kerala.
+2026-10-07,RBI Rate Hike,Negative,Partly,RBI hikes repo to 5.50%,First hike in nearly four years as oil above $100 and a weak rupee pushed inflation risks; stance changed to calibrated tightening.
