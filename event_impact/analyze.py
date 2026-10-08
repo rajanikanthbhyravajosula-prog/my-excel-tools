@@ -176,8 +176,136 @@ def crude_events(brent):
     return rows
 
 
+# Crisis periods: (name, search from, search to, cause). Inside the window the code finds the
+# lowest close (bottom), then the highest close before it (peak), then the date the peak is regained.
+CRISES = [
+    ("Asian financial crisis 1997-98", "1997-08-01", "1998-12-31",
+     "Currency crises in Thailand, Korea and Indonesia; Pokhran sanctions and Russia default in 1998."),
+    ("Dot-com bust and 9/11 2000-01", "2000-01-01", "2001-12-31",
+     "Technology bubble burst, Ketan Parekh scandal, UTI US-64 freeze and the 9/11 attacks."),
+    ("May 2006 correction", "2006-04-01", "2006-07-31",
+     "Global commodity and emerging-market sell-off after a strong rally; FIIs sold heavily."),
+    ("Global financial crisis 2008-09", "2007-12-01", "2009-06-30",
+     "US subprime crisis, Lehman collapse and a global recession."),
+    ("Euro debt crisis and US downgrade 2010-11", "2010-10-01", "2011-12-31",
+     "European sovereign debt crisis, India's high inflation and rate hikes, US credit downgrade."),
+    ("Taper tantrum and rupee crisis 2013", "2013-05-01", "2013-09-30",
+     "Fed taper hint triggered FII outflows; the rupee fell to record lows."),
+    ("China slowdown and commodity crash 2015-16", "2015-03-01", "2016-03-31",
+     "Yuan devaluation, Chinese market crash and the collapse in crude and metal prices."),
+    ("IL&FS / NBFC crisis 2018", "2018-08-01", "2018-11-30",
+     "IL&FS defaults froze NBFC funding; crude above $85 and a weak rupee."),
+    ("COVID-19 crash 2020", "2020-01-01", "2020-04-30",
+     "Global pandemic and national lockdown; fastest bear market in history."),
+    ("Inflation, rate hikes and Ukraine war 2021-22", "2021-10-01", "2022-07-31",
+     "Global inflation, aggressive Fed hikes, Russia-Ukraine war and record FII selling."),
+    ("FII exodus and US tariff correction 2024-25", "2024-09-01", "2025-04-30",
+     "Record FII selling, slowing earnings and US tariff shock."),
+]
+YEAR = 250  # trading days in a year
+MAX_1Y_GAIN = 10.0  # a 1-year gain above +1000% is treated as a data fault
+
+def panic_meter(nifty, vix, usdinr, stocks):
+    """Daily raw Panic Meter components (scored 0-100 by formulas in the workbook) and forward returns."""
+    p = pd.DataFrame(index=nifty.index)
+    c = nifty["Close"]
+    p["VIX"] = vix["Close"].reindex(p.index, method="ffill")
+    p["Drawdown"] = c / c.rolling(YEAR, min_periods=20).max() - 1
+    p["Return20"] = c.pct_change(20)
+    below = []
+    for s, df in stocks.items():
+        if df is None:
+            continue
+        sc = df["Close"]
+        ok = pd.Series(1.0, index=sc.index)
+        for j in JUMPS[s]:  # ignore 200 days after an unadjusted split/demerger
+            ok.iloc[j:j + 200] = np.nan
+        ma = sc.rolling(200).mean()
+        below.append(((sc < ma).astype(float) * ok).where(ma.notna()).reindex(p.index))
+    b = pd.concat(below, axis=1)
+    p["Breadth"] = b.mean(axis=1).where(b.notna().sum(axis=1) >= 30)
+    p["Rupee"] = usdinr["Close"].reindex(p.index, method="ffill").pct_change(20)
+    p["Nifty_Next60"] = c.shift(-60) / c - 1
+    p["Nifty_Next250"] = c.shift(-YEAR) / c - 1
+    return p
+
+
+def crisis_periods(nifty, sensex, vix, stocks):
+    rows, srows = [], []
+    for name, start, end, cause in CRISES:
+        idx, idx_name = (nifty, "Nifty") if pd.Timestamp(start) > nifty.index[0] else (sensex, "Sensex")
+        c = idx["Close"]
+        w = c[start:end]
+        if len(w) < 20:
+            continue
+        trough_d = w.idxmin()
+        peak_d = w[:trough_d].idxmax()
+        peak, trough = c[peak_d], c[trough_d]
+        after = c[trough_d:]
+        rec = after[after >= peak]
+        rec_d = rec.index[0] if len(rec) else None
+        ip, it = c.index.get_loc(peak_d), c.index.get_loc(trough_d)
+        down10 = c[peak_d:trough_d][c[peak_d:trough_d] <= peak * 0.9]
+        up20 = after[after >= trough * 1.2]
+
+        def fwd(d):
+            if d is None:
+                return np.nan
+            i = c.index.get_loc(d)
+            return c.iloc[i + YEAR] / c.iloc[i] - 1 if i + YEAR < len(c) else np.nan
+
+        d10 = down10.index[0] if len(down10) else None
+        d20 = up20.index[0] if len(up20) else None
+        row = {
+            "Crisis": name, "Cause": cause, "Index": idx_name,
+            "Peak_Date": peak_d.date().isoformat(), "Peak": peak,
+            "Trough_Date": trough_d.date().isoformat(), "Trough": trough,
+            "Fall": trough / peak - 1, "Days_Down": it - ip,
+            "Recovery_Date": rec_d.date().isoformat() if rec_d is not None else None,
+            "Days_To_Recover": (c.index.get_loc(rec_d) - it) if rec_d is not None else np.nan,
+            "Ret1Y_After_Trough": fwd(trough_d),
+            "Buy10_Date": d10.date().isoformat() if d10 is not None else None,
+            "Buy10_FurtherFall": trough / c[d10] - 1 if d10 is not None else np.nan,
+            "Buy10_Ret1Y": fwd(d10),
+            "BuyTrough_Ret1Y": fwd(trough_d),
+            "Buy20Up_Date": d20.date().isoformat() if d20 is not None else None,
+            "Buy20Up_Ret1Y": fwd(d20),
+        }
+        v = vix["Close"][peak_d:trough_d + pd.Timedelta(days=30)] if vix is not None else pd.Series(dtype=float)
+        row["VIX_Peak"] = v.max() if len(v) else np.nan
+        rows.append(row)
+
+        for s, df in stocks.items():
+            if df is None:
+                continue
+            sc = df["Close"]
+            jp = sc.index.searchsorted(peak_d)
+            jt = sc.index.searchsorted(trough_d)
+            if jp >= len(sc) or jt >= len(sc) or (sc.index[jp] - peak_d).days > 5 or jp < 1:
+                continue
+            if ((JUMPS[s] >= jp) & (JUMPS[s] <= jt + YEAR)).any():
+                continue
+            s_peak = sc.iloc[jp]
+            s_low = sc.iloc[jp:jt + 61].min()
+            s_after = sc.iloc[jt:]
+            s_rec = s_after[s_after >= s_peak]
+            srows.append({
+                "Stock": s, "Crisis": name,
+                "Fall_Peak_To_Trough": sc.iloc[jt] / s_peak - 1,
+                "Max_Fall": s_low / s_peak - 1,
+                "Vs_Index": (sc.iloc[jt] / s_peak - 1) - (trough / peak - 1),
+                "Days_To_Recover": (sc.index.get_loc(s_rec.index[0]) - jt) if len(s_rec) else np.nan,
+                "Recovered": 1 if len(s_rec) else 0,
+                "Ret1Y_After_Trough": sc.iloc[jt + YEAR] / sc.iloc[jt] - 1 if jt + YEAR < len(sc) else np.nan,
+            })
+            if srows[-1]["Ret1Y_After_Trough"] > MAX_1Y_GAIN:  # more than 10x in a year: treat as a data fault
+                srows[-1]["Ret1Y_After_Trough"] = np.nan
+    return pd.DataFrame(rows), pd.DataFrame(srows)
+
+
 def main():
     nifty, sensex, vix = load("NIFTY"), load("SENSEX"), load("INDIAVIX")
+    usdinr = load("USDINR")
     brent = load("BRENT")
     with open(HERE / "events.csv", newline="") as f:
         events = list(csv.DictReader(f))
@@ -189,6 +317,7 @@ def main():
     missing = [s for s, d in stocks.items() if d is None]
     if missing:
         print("No price data for:", ", ".join(missing))
+    panic = panic_meter(nifty, vix, usdinr, stocks)
 
     nifty_rows, stock_rows = [], []
     for k, ev in enumerate(events, start=1):
@@ -262,8 +391,14 @@ def main():
         if same:
             d[f"{group}_Same5"] = pd.concat(same, axis=1).mean(axis=1)
             d[f"{group}_Next5"] = pd.concat(nxt, axis=1).mean(axis=1)
+    for col in ["Nifty_Next60", "Nifty_Next250", "Drawdown", "Return20", "Breadth", "Rupee"]:
+        d[col] = panic[col]
     d = d[d["Brent"].notna()]
     d.to_csv(OUT / "market_daily.csv", index_label="Date")
+    cp, cs = crisis_periods(nifty, sensex, vix, stocks)
+    cp.to_csv(OUT / "crisis_periods.csv", index=False)
+    cs.to_csv(OUT / "crisis_stocks.csv", index=False)
+    print(f"{len(cp)} crisis periods, {len(cs)} stock-crisis rows")
     print(f"{len(nifty_rows)} events, {len(stock_rows)} stock-event rows, {len(d)} market days")
 
 

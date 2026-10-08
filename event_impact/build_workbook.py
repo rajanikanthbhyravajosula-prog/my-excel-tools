@@ -108,9 +108,11 @@ SETTINGS = [  # (row, label, value, format, explanation)
      "1.00 = stop-loss at the typical worst dip after this kind of event; 1.2 = 20% wider."),
     (11, "FII/DII 'big flow' threshold (Rs crore)", 3000, "#,##0",
      "Used on the FII_DII sheet to split big buying days from big selling days."),
+    (12, "Minimum crises before ranking a stock", 3, "0",
+     "Crisis_Scorecard ranks only stocks measured in at least this many crisis periods."),
 ]
 S = {k: f"Settings!$B${r}" for k, r in zip(
-    ["fear", "greed", "scale", "minev", "stw", "ltw", "slm", "fii"], [r for r, *_ in SETTINGS])}
+    ["fear", "greed", "scale", "minev", "stw", "ltw", "slm", "fii", "mincr"], [r for r, *_ in SETTINGS])}
 
 
 def build_settings(wb):
@@ -148,6 +150,9 @@ NI_COLS = [  # (csv column, header, format)
 NI = {name: L(i + 1) for i, (name, _, _) in enumerate(NI_COLS)}
 NI["Mood"] = L(len(NI_COLS) + 1)
 NI["Up20"] = L(len(NI_COLS) + 2)
+NI["PanicBefore"] = L(len(NI_COLS) + 3)
+NI["PanicPeak"] = L(len(NI_COLS) + 4)
+MDC = {}  # Market_Daily column letters, filled by build_market_daily
 
 
 def build_calendar(wb, ni):
@@ -175,7 +180,8 @@ def build_calendar(wb, ni):
 
 def build_nifty_impact(wb, ni):
     ws = wb.create_sheet("Nifty_Impact")
-    heads = [h for _, h, _ in NI_COLS] + ["Market mood (formula)", "Higher after 20 days? (1=yes)"]
+    heads = [h for _, h, _ in NI_COLS] + ["Market mood (formula)", "Higher after 20 days? (1=yes)",
+                                         "Panic score day before (0-100)", "Panic peak within 20 days"]
     header(ws, 1, heads, height=45)
     n = len(ni)
     for r, row in enumerate(ni.to_dict("records"), start=2):
@@ -192,13 +198,20 @@ def build_nifty_impact(wb, ni):
                                   f'IF({g}{r}>={S["greed"]},"Greed","Calm")))')
         t = NI["Total20"]
         ws[f"{NI['Up20']}{r}"] = f'=IF({t}{r}="","",IF({t}{r}>0,1,0))'
-        for k in ("Mood", "Up20"):
+        pc, dc = f"Market_Daily!${MDC['Panic']}:${MDC['Panic']}", "Market_Daily!$A:$A"
+        m = f"MATCH(B{r},{dc},0)"
+        ws[f"{NI['PanicBefore']}{r}"] = f'=IFERROR(IF({m}<3,"",INDEX({pc},{m}-1)),"")'
+        ws[f"{NI['PanicPeak']}{r}"] = f'=IFERROR(MAX(INDEX({pc},{m}):INDEX({pc},{m}+20)),"")'
+        for k in ("Mood", "Up20", "PanicBefore", "PanicPeak"):
             ws[f"{NI[k]}{r}"].font, ws[f"{NI[k]}{r}"].border = F_BASE, BOX
+        for k in ("PanicBefore", "PanicPeak"):
+            ws[f"{NI[k]}{r}"].number_format = "0"
     mood_rules(ws, f"{NI['Mood']}2:{NI['Mood']}{n + 1}")
     for k in ("Day0", "Total20", "Post60"):
         ws.conditional_formatting.add(f"{NI[k]}2:{NI[k]}{n + 1}", scale3())
     ws.freeze_panes = "G2"
-    ws.auto_filter.ref = f"A1:{NI['Up20']}{n + 1}"
+    ws.auto_filter.ref = f"A1:{NI['PanicPeak']}{n + 1}"
+    ws.conditional_formatting.add(f"{NI['PanicBefore']}2:{NI['PanicPeak']}{n + 1}", panic_scale())
     for i in range(1, len(heads) + 1):
         ws.column_dimensions[L(i)].width = 11
     widths(ws, {"C": 16, "F": 40, NI["Mood"]: 12})
@@ -487,25 +500,50 @@ def build_sector(wb, industries, categories, last_se):
 
 
 # ---------------------------------------------------------------- crude + daily data
+PANIC_COMPONENTS = [  # (Market_Daily column, label, calm value -> score 0, fear value -> score 100, meaning)
+    ("VIX", "India VIX level", 12, 40, "Expected volatility. Below 12 = complacent; 40+ = panic (2008: 85, 2020: 84)."),
+    ("Drawdown", "Nifty fall from its 1-year high", 0.0, -0.30, "How far below the 1-year high Nifty trades."),
+    ("Return20", "Nifty 20-day return", 0.05, -0.15, "Speed of the fall: a fast fall creates more panic than a slow one."),
+    ("Breadth", "Share of watchlist stocks below their 200-day average", 0.20, 0.90,
+     "How widespread the selling is across your 205 stocks."),
+    ("Rupee", "USD/INR 20-day change", -0.01, 0.04, "Rupee weakness: foreign money leaving India."),
+]
+PANIC_ROW0 = 6  # first scale row on the Panic_Meter sheet
+SCORE_COLS = [f"{k}_Score" for k, *_ in PANIC_COMPONENTS]
+
+
+def panic_scale():
+    return ColorScaleRule(start_type="num", start_value=0, start_color="63BE7B", mid_type="num", mid_value=50,
+                          mid_color="FFEB84", end_type="num", end_value=100, end_color="F8696B")
+
+
 def build_market_daily(wb, md):
     ws = wb.create_sheet("Market_Daily")
-    cols = list(md.columns)
+    cols = list(md.columns) + SCORE_COLS + ["Panic"]
+    MDC.update({name: L(i + 1) for i, name in enumerate(cols)})
     header(ws, 1, cols, height=45)
     for r, row in enumerate(md.itertuples(index=False), start=2):
         for c, v in enumerate(row, start=1):
             if c == 1:
                 v = pd.Timestamp(v).to_pydatetime()
             ws.cell(r, c, nz(v))
+        for k, (comp, *_rest) in enumerate(PANIC_COMPONENTS):
+            x, row_s = f"{MDC[comp]}{r}", PANIC_ROW0 + k
+            calm, fear = f"Panic_Meter!$B${row_s}", f"Panic_Meter!$C${row_s}"
+            ws[f"{MDC[SCORE_COLS[k]]}{r}"] = f'=IF({x}="","",MAX(0,MIN(100,({x}-{calm})/({fear}-{calm})*100)))'
+        sc = f"{MDC[SCORE_COLS[0]]}{r}:{MDC[SCORE_COLS[-1]]}{r}"
+        ws[f"{MDC['Panic']}{r}"] = f'=IF(COUNT({sc})<3,"",AVERAGE({sc}))'
     last = len(md) + 1
     for c, name in enumerate(cols, start=1):
         fmt = ("dd-mmm-yyyy" if name == "Date" else "#,##0.00" if name in ("Nifty", "Brent")
-               else "0.00" if name == "VIX" else PCT)
+               else "0.00" if name == "VIX" else "0" if name in SCORE_COLS + ["Panic"] else PCT)
         for cell in ws[f"{L(c)}2:{L(c)}{last}"]:
             cell[0].number_format = fmt
     ws.freeze_panes = "B2"
     for i in range(1, len(cols) + 1):
         ws.column_dimensions[L(i)].width = 11
-    return {name: L(i + 1) for i, name in enumerate(cols)}, last
+    ws.conditional_formatting.add(f"{MDC['Panic']}2:{MDC['Panic']}{last}", panic_scale())
+    return dict(MDC), last
 
 
 def build_crude(wb, mdc, last_md):
@@ -719,6 +757,408 @@ def build_adjuster(wb, last_se, end_sc, cat_list, example):
     widths(ws, {"A": 46, "B": 22, "C": 80})
 
 
+
+# ---------------------------------------------------------------- panic meter
+PANIC_ZONES = [(0, 20, "Complacent / greedy"), (20, 40, "Calm"), (40, 60, "Worried"),
+               (60, 80, "Fear"), (80, 101, "Panic")]
+
+
+def build_panic(wb, mdc, last_md, last_ni):
+    ws = wb.create_sheet("Panic_Meter")
+    title(ws, "Panic Meter — how frightened is the market (0 = calm, 100 = extreme panic), and what followed?",
+          "Each component is scored 0-100 between its calm and fear values (yellow, editable); the Panic score is "
+          "their average. Fixed scales are used, so no hindsight goes into the score.")
+    header(ws, 5, ["Component", "Calm value (score 0)", "Fear value (score 100)", "Meaning"])
+    for k, (comp, label, calm, fear, meaning) in enumerate(PANIC_COMPONENTS):
+        r = PANIC_ROW0 + k
+        ws.cell(r, 1, label).font = F_BASE
+        fmt = "0" if comp == "VIX" else PCT
+        for c, v in ((2, calm), (3, fear)):
+            cell = ws.cell(r, c, v)
+            cell.font, cell.fill, cell.number_format, cell.border = F_INPUT, FILL_INPUT, fmt, BOX
+        ws.cell(r, 4, meaning).font = F_NOTE
+
+    md = lambda k: f"Market_Daily!${mdc[k]}$2:${mdc[k]}${last_md}"  # noqa: E731
+    # ---- latest reading
+    r0 = PANIC_ROW0 + len(PANIC_COMPONENTS) + 1
+    header(ws, r0, ["LATEST READING", "Value"], fill=FILL_SUB, font=F_BOLD, height=18)
+    ws.cell(r0 + 1, 1, "Latest date in data")
+    ws.cell(r0 + 1, 2, f"=MAX({md('Date')})").number_format = "dd-mmm-yyyy"
+    ws.cell(r0 + 2, 1, "Panic score")
+    ws.cell(r0 + 2, 2, f"=INDEX({md('Panic')},MATCH(B{r0 + 1},{md('Date')},0))").number_format = "0"
+    ws.cell(r0 + 3, 1, "Zone")
+    z0 = r0 + 7
+    zr = f"{z0 + 1}:$C${z0 + len(PANIC_ZONES)}"
+    ws.cell(r0 + 3, 2, f'=IFERROR(INDEX($C${zr},MATCH(B{r0 + 2},$A${z0 + 1}:$A${z0 + len(PANIC_ZONES)},1)),"")')
+    for rr in range(r0 + 1, r0 + 4):
+        ws.cell(rr, 1).font, ws.cell(rr, 2).font, ws.cell(rr, 2).fill = F_BASE, F_BOLD, FILL_OUT
+    ws.conditional_formatting.add(f"B{r0 + 2}", panic_scale())
+
+    # ---- zones: what followed
+    ws.cell(z0 - 1, 1, "A. Daily history since 2007: what Nifty did next at each panic level").font = F_BOLD
+    header(ws, z0, ["From", "To", "Zone", "Days", "% of all days", "Nifty next 20 days", "Nifty next 60 days",
+                    "Nifty next 1 year", "% higher after 1 year", "Worst next 60 days"], height=45)
+    for i, (lo, hi, name) in enumerate(PANIC_ZONES):
+        r = z0 + 1 + i
+        for c, v in ((1, lo), (2, hi)):
+            cell = ws.cell(r, c, v)
+            cell.font, cell.fill, cell.border = F_INPUT, FILL_INPUT, BOX
+        ws.cell(r, 3, name)
+        crit = f'{md("Panic")},">="&$A{r},{md("Panic")},"<"&$B{r}'
+        ws.cell(r, 4, f"=COUNTIFS({crit})")
+        ws.cell(r, 5, f'=IFERROR(D{r}/COUNT({md("Panic")}),"")')
+        for c, key in ((6, "Nifty_Next20"), (7, "Nifty_Next60"), (8, "Nifty_Next250")):
+            ws.cell(r, c, f'=IFERROR(AVERAGEIFS({md(key)},{crit}),"")')
+        ws.cell(r, 9, f'=IFERROR(COUNTIFS({crit},{md("Nifty_Next250")},">0")/COUNTIFS({crit},{md("Nifty_Next250")},"<>"),"")')
+        ws.cell(r, 10, f'=IFERROR(_xlfn.MINIFS({md("Nifty_Next60")},{crit}),"")')
+    zend = z0 + len(PANIC_ZONES)
+    style_range(ws, f"C{z0 + 1}:J{zend}")
+    for col in "EFGHIJ":
+        style_range(ws, f"{col}{z0 + 1}:{col}{zend}", PCT)
+    style_range(ws, f"D{z0 + 1}:D{zend}", NUM0)
+    ws.conditional_formatting.add(f"F{z0 + 1}:H{zend}", scale3())
+
+    # ---- events: panic vs outcome
+    e0 = zend + 4
+    ws.cell(e0 - 1, 1, "B. Events: did the panic level match what the market did next?").font = F_BOLD
+    header(ws, e0, ["From", "To", "Zone (panic peak within 20 days of event)", "Events", "Avg event-day move",
+                    "Avg worst fall (20 days)", "Avg move next 60 days", "% higher after 60 days",
+                    "Avg days to recover"], height=45)
+    pk = ni_rng("PanicPeak", last_ni)
+    for i, (lo, hi, name) in enumerate(PANIC_ZONES):
+        r = e0 + 1 + i
+        ws.cell(r, 1, f"=A{z0 + 1 + i}")
+        ws.cell(r, 2, f"=B{z0 + 1 + i}")
+        ws.cell(r, 3, name)
+        crit = f'{pk},">="&$A{r},{pk},"<"&$B{r}'
+        ws.cell(r, 4, f"=COUNTIFS({crit})")
+        for c, key in ((5, "Day0"), (6, "MaxFall20"), (7, "Post60"), (9, "Recovery_Days")):
+            ws.cell(r, c, f'=IFERROR(AVERAGEIFS({ni_rng(key, last_ni)},{crit}),"")')
+        p60 = ni_rng("Post60", last_ni)
+        ws.cell(r, 8, f'=IFERROR(COUNTIFS({crit},{p60},">0")/COUNTIFS({crit},{p60},"<>"),"")')
+    eend = e0 + len(PANIC_ZONES)
+    style_range(ws, f"A{e0 + 1}:I{eend}")
+    for col in "EFGH":
+        style_range(ws, f"{col}{e0 + 1}:{col}{eend}", PCT)
+    style_range(ws, f"I{e0 + 1}:I{eend}", NUM0)
+    ws.conditional_formatting.add(f"G{e0 + 1}:G{eend}", scale3())
+    ws.cell(eend + 2, 1, "How to read: if the 'Panic' and 'Fear' rows show the best returns afterwards, extreme fear has "
+                         "historically been a buying opportunity: the crowd (and the forecasters) were too gloomy.").font = F_NOTE
+    widths(ws, {"A": 46, "B": 14, "C": 34, "D": 90})
+    for col in "EFGHIJ":
+        ws.column_dimensions[col].width = 13
+
+
+# ---------------------------------------------------------------- crisis periods
+def build_crisis(wb, cp, cs, watch, mdc, last_md):
+    ws = wb.create_sheet("Crisis_Periods")
+    title(ws, "Crisis Periods — recessions and bear markets measured from peak to bottom to full recovery",
+          "Peak = highest close before the bottom; Recovery = first close back at the peak. Days are trading days "
+          "(about 250 a year). Sensex is used before Sep-2007.")
+    heads = ["Crisis", "Index", "Peak date", "Peak level", "Bottom date", "Bottom level", "Fall peak to bottom",
+             "Trading days falling", "Recovery date", "Trading days bottom to recovery", "Total months peak to recovery",
+             "India VIX peak", "Panic Meter peak", "Return 1 year after bottom",
+             "PHASE 1: first 10% fall — date", "PHASE 1: further fall after buying", "PHASE 1: 1-year return",
+             "PHASE 2: bottom — 1-year return", "PHASE 3: 20% off bottom — date", "PHASE 3: 1-year return",
+             "Practical choice: early vs wait (bottom cannot be timed)", "What caused it"]
+    header(ws, 4, heads, height=60)
+    pc, dc = f"Market_Daily!${mdc['Panic']}$2:${mdc['Panic']}${last_md}", f"Market_Daily!$A$2:$A${last_md}"
+    dt = lambda v: pd.Timestamp(v).to_pydatetime() if isinstance(v, str) else None  # noqa: E731
+    for r, x in enumerate(cp.itertuples(index=False), start=5):
+        vals = {1: x.Crisis, 2: x.Index, 3: dt(x.Peak_Date), 4: x.Peak, 5: dt(x.Trough_Date), 6: x.Trough,
+                8: x.Days_Down, 9: dt(x.Recovery_Date) or "Not yet", 10: nz(x.Days_To_Recover), 12: nz(x.VIX_Peak),
+                14: nz(x.Ret1Y_After_Trough), 15: dt(x.Buy10_Date), 16: nz(x.Buy10_FurtherFall),
+                17: nz(x.Buy10_Ret1Y), 18: nz(x.BuyTrough_Ret1Y), 19: dt(x.Buy20Up_Date),
+                20: nz(x.Buy20Up_Ret1Y), 22: x.Cause}
+        for c, v in vals.items():
+            ws.cell(r, c, v)
+        ws.cell(r, 7, f"=F{r}/D{r}-1")
+        ws.cell(r, 11, f'=IF(ISNUMBER(I{r}),(I{r}-C{r})/30.4,"")')
+        ws.cell(r, 13, f'=IF(C{r}<MIN({dc}),"",IFERROR(_xlfn.MAXIFS({pc},{dc},">="&C{r},{dc},"<="&E{r}+30),""))')
+        ws.cell(r, 21, f'=IF(OR(Q{r}="",T{r}=""),"",IF(Q{r}>=T{r},"Buying early (first 10% fall) paid more",'
+                       f'"Waiting for the 20% bounce paid more"))')
+    end = 4 + len(cp)
+    avg_r = end + 1
+    ws.cell(avg_r, 1, "AVERAGE of all crises").font = F_BOLD
+    for col in "GHJKNPQRT":
+        ws[f"{col}{avg_r}"] = f'=IFERROR(AVERAGE({col}5:{col}{end}),"")'
+    style_range(ws, f"A5:V{avg_r}")
+    for col in "CEIOS":
+        style_range(ws, f"{col}5:{col}{end}", "dd-mmm-yyyy")
+    for col in "DF":
+        style_range(ws, f"{col}5:{col}{end}", "#,##0")
+    for col in "GNPQRT":
+        style_range(ws, f"{col}5:{col}{avg_r}", PCT)
+    for col in "HJ":
+        style_range(ws, f"{col}5:{col}{avg_r}", NUM0)
+    style_range(ws, f"K5:K{avg_r}", NUM1)
+    style_range(ws, f"L5:M{end}", "0")
+    for c in ws[f"A{avg_r}:V{avg_r}"][0]:
+        c.font, c.fill = F_BOLD, FILL_SUB
+    for r in range(5, end + 1):
+        ws.cell(r, 1).font = F_BOLD
+        ws.cell(r, 22).alignment = Alignment(wrap_text=True, vertical="top")
+    ws.conditional_formatting.add(f"M5:M{end}", panic_scale())
+    ws.conditional_formatting.add(f"N5:N{end}", scale3())
+    ws.conditional_formatting.add(f"Q5:T{end}", scale3())
+    ws.cell(avg_r + 2, 1, "Lesson: buying at the exact bottom is impossible to time. Compare Phase 1 (buy early) with "
+                          "Phase 3 (wait for a 20% bounce): Phase 3 gives up some gain but avoids the further fall "
+                          "shown in column P.").font = F_NOTE
+    ws.freeze_panes = "B5"
+    widths(ws, {"A": 40, "V": 70})
+    for i in range(2, 22):
+        ws.column_dimensions[L(i)].width = 12
+
+    # ---- raw stock rows
+    meta = watch.set_index("NSE_Code")
+    wd = wb.create_sheet("Crisis_Stock_Data")
+    cols = ["Stock", "Crisis", "Industry", "Cap", "Fall (index peak to bottom)", "Worst fall", "Vs index",
+            "Trading days to recover", "Recovered? (1=yes)", "Return 1 year after bottom"]
+    header(wd, 1, cols, height=45)
+    for r, x in enumerate(cs.itertuples(index=False), start=2):
+        for c, v in enumerate([x.Stock, x.Crisis, meta["Industry"].get(x.Stock), meta["Cap"].get(x.Stock),
+                               x.Fall_Peak_To_Trough, x.Max_Fall, x.Vs_Index, nz(x.Days_To_Recover),
+                               x.Recovered, nz(x.Ret1Y_After_Trough)], start=1):
+            wd.cell(r, c, v)
+    last_cs = len(cs) + 1
+    for col in "EFGJ":
+        for c in wd[f"{col}2:{col}{last_cs}"]:
+            c[0].number_format = PCT
+    wd.freeze_panes = "C2"
+    wd.auto_filter.ref = f"A1:J{last_cs}"
+    widths(wd, {"A": 13, "B": 40, "C": 18})
+
+    # ---- stock scorecard
+    rng = lambda col: f"Crisis_Stock_Data!${col}$2:${col}${last_cs}"  # noqa: E731
+    wc = wb.create_sheet("Crisis_Scorecard")
+    title(wc, "Crisis Scorecard — how each watchlist stock behaved in recessions and bear markets (formulas)",
+          "Defence = fell less than the index. Recovery leader = best 1-year return after the market bottom. "
+          "Ranked only with enough crises measured (Settings).")
+    header(wc, 4, ["Stock", "Name", "Industry", "Cap", "Crises measured", "Avg fall (peak to bottom)",
+                   "Avg worst fall", "Avg vs index", "% of crises fully recovered", "Avg trading days to recover",
+                   "Avg 1-year return after bottom", "Defence score", "Defence rank (1 = best)",
+                   "Recovery score", "Recovery rank (1 = best)"], height=60)
+    n = len(watch)
+    send = 4 + n
+    for r, w in enumerate(watch.itertuples(index=False), start=5):
+        wc.cell(r, 1, w.NSE_Code)
+        wc.cell(r, 2, w.Name)
+        wc.cell(r, 3, w.Industry)
+        wc.cell(r, 4, w.Cap)
+        wc.cell(r, 5, f'=COUNTIF({rng("A")},$A{r})')
+        for c, col in ((6, "E"), (7, "F"), (8, "G"), (9, "I"), (10, "H"), (11, "J")):
+            wc.cell(r, c, f'=IFERROR(AVERAGEIFS({rng(col)},{rng("A")},$A{r}),"")')
+        ok = f'OR(E{r}<{S["mincr"]},H{r}="",K{r}="")'
+        wc.cell(r, 12, f'=IF({ok},"",RANK(H{r},$H$5:$H${send},0)+ROW()/100000)')
+        wc.cell(r, 13, f'=IF(L{r}="","",RANK(L{r},$L$5:$L${send},1))')
+        wc.cell(r, 14, f'=IF({ok},"",RANK(K{r},$K$5:$K${send},0)+ROW()/100000)')
+        wc.cell(r, 15, f'=IF(N{r}="","",RANK(N{r},$N$5:$N${send},1))')
+    style_range(wc, f"A5:O{send}")
+    for r in range(5, send + 1):
+        wc.cell(r, 1).font = F_BOLD
+    for col in "FGHIK":
+        style_range(wc, f"{col}5:{col}{send}", PCT)
+    style_range(wc, f"J5:J{send}", NUM0)
+    for col in "LN":
+        style_range(wc, f"{col}5:{col}{send}", "0.0")
+    for col in "HK":
+        wc.conditional_formatting.add(f"{col}5:{col}{send}", scale3())
+    wc.freeze_panes = "B5"
+    wc.auto_filter.ref = f"A4:O{send}"
+    widths(wc, {"A": 13, "B": 20, "C": 18, "D": 10})
+    for col in "EFGHIJKLMNO":
+        wc.column_dimensions[col].width = 12
+
+    # ---- sector x crisis
+    wsx = wb.create_sheet("Crisis_Sectors")
+    title(wsx, "Crisis Sectors — average fall of watchlist stocks in each industry, by crisis (formulas)",
+          "Read across a row to see whether an industry is consistently defensive; the last column shows "
+          "the average 1-year bounce after the market bottom.")
+    crises = list(cp["Crisis"])
+    header(wsx, 4, ["Industry"] + crises + ["Avg fall, all crises", "Avg 1-year return after bottom"], height=75)
+    industries = sorted(watch["Industry"].dropna().unique())
+    for r, ind in enumerate(industries, start=5):
+        wsx.cell(r, 1, ind).font = F_BOLD
+        for j, name in enumerate(crises):
+            wsx.cell(r, 2 + j, f'=IFERROR(AVERAGEIFS({rng("E")},{rng("C")},$A{r},{rng("B")},{L(2 + j)}$4),"")')
+        k = 2 + len(crises)
+        wsx.cell(r, k, f'=IFERROR(AVERAGEIFS({rng("E")},{rng("C")},$A{r}),"")')
+        wsx.cell(r, k + 1, f'=IFERROR(AVERAGEIFS({rng("J")},{rng("C")},$A{r}),"")')
+    iend = 4 + len(industries)
+    k = 2 + len(crises)
+    style_range(wsx, f"B5:{L(k + 1)}{iend}", PCT)
+    wsx.conditional_formatting.add(f"B5:{L(k)}{iend}", scale3())
+    wsx.conditional_formatting.add(f"{L(k + 1)}5:{L(k + 1)}{iend}", scale3())
+    wsx.freeze_panes = "B5"
+    widths(wsx, {"A": 22})
+    for i in range(2, k + 2):
+        wsx.column_dimensions[L(i)].width = 12
+    return send
+
+
+def add_crisis_top_lists(wb, send, top=20):
+    ws = wb["Top_Lists"]
+    sc = lambda c: f"Crisis_Scorecard!${c}$5:${c}${send}"  # noqa: E731
+    base = ws.max_row + 3
+    blocks = [("CRISIS DEFENDERS — fell least versus the index in recessions and bear markets", "L", base),
+              ("RECOVERY LEADERS — best 1-year return after the market bottom", "N", base + top + 4)]
+    for label, score_col, r0 in blocks:
+        ws.cell(r0 - 1, 1, label).font = F_BOLD
+        header(ws, r0, ["Rank", "Stock", "Name", "Industry", "Cap", "Crises measured", "Avg fall",
+                        "Avg vs index", "% recovered", "Avg days to recover", "Avg 1-year after bottom"], height=45)
+        for k in range(1, top + 1):
+            r = r0 + k
+            ws.cell(r, 1, k)
+            match = f"MATCH(SMALL({sc(score_col)},$A{r}),{sc(score_col)},0)"
+            for c, col in zip(range(2, 12), "ABCDEFHIJK"):
+                ws.cell(r, c, f'=IFERROR(INDEX({sc(col)},{match}),"")')
+        style_range(ws, f"A{r0 + 1}:K{r0 + top}")
+        for col in "GHIK":
+            style_range(ws, f"{col}{r0 + 1}:{col}{r0 + top}", PCT)
+        style_range(ws, f"J{r0 + 1}:J{r0 + top}", NUM0)
+
+
+# ---------------------------------------------------------------- analyst forecasts
+STUDIES = [
+    ("Can stock market forecasters forecast?", "Alfred Cowles III (1933), Econometrica",
+     "Studied about 7,500 stock recommendations by 16 US financial services (1928-1932), plus fire insurance "
+     "companies and financial publications. As a group the services did worse than the average stock by about "
+     "1.4% a year, and the best records looked like luck rather than skill.",
+     "Even professional forecasts need to be checked against outcomes before we trust them.",
+     "https://economics.yale.edu/sites/default/files/2022-08/cowles-forecasters33.pdf"),
+    ("Expert Political Judgment", "Philip Tetlock (2005), Princeton University Press",
+     "Tracked 284 experts making 82,361 forecasts over about 20 years. On average they were only slightly better "
+     "than chance; famous, confident experts did worse; events called 'impossible' happened about 15% of the time.",
+     "The louder and more certain a TV expert is during a crisis, the less weight we give the forecast.",
+     "https://www.journalofaccountancy.com/issues/2006/mar/bewareexpertpredictions.html"),
+    ("Guru Grades", "CXO Advisory Group (2005-2012)",
+     "Graded 6,582 public US stock market forecasts by 68 experts. Average accuracy was 47.4%, lower than a "
+     "coin toss; individual experts ranged from 20% to 72%.",
+     "Direction calls of market gurus are roughly 50/50. Track each source's hit rate (Forecast_Tracker).",
+     "https://www.cxoadvisory.com/gurus/"),
+    ("How well do economists forecast recessions?", "An, Jalles and Loungani (2018), IMF Working Paper 18/39",
+     "Studied GDP forecasts for 63 countries (1992-2014), covering 153 recessions. The vast majority were missed; "
+     "forecasters underestimated how deep recessions would be until the year was nearly over. Private-sector and "
+     "official (IMF) forecasts were equally poor.",
+     "Do not wait for economists to confirm a recession: by then the market has usually fallen. Use the Panic Meter.",
+     "https://www.imf.org/en/publications/wp/issues/2018/03/05/how-well-do-economists-forecast-recessions-45672"),
+    ("Equity analysts: Still too bullish", "McKinsey & Company (2010), Goedhart, Raj and Saxena",
+     "Over 25 years, analysts forecast S&P 500 earnings growth of 10-12% a year against actual growth of about 6%. "
+     "Forecasts were too high in almost every year except recoveries after recessions, and analysts were slow to "
+     "cut estimates when the economy weakened.",
+     "Discount consensus EPS growth before using it in targets, especially going into a slowdown.",
+     "https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/equity-analysts-still-too-bullish"),
+    ("SPIVA India Scorecard", "S&P Dow Jones Indices (Year-End 2024)",
+     "Over 10 years, 74% of Indian large-cap active funds underperformed their benchmark (S&P India LargeMidCap). "
+     "Earlier scorecards show similar majorities (about 54% to 68%).",
+     "Most professional money managers do not beat the index over time, so 'expert' views are not an edge in themselves.",
+     "https://www.spglobal.com/spdji/en/spiva/article/spiva-india-year-end-2024/"),
+    ("BofA Global Fund Manager Survey: cash rule", "Bank of America (monthly survey)",
+     "When fund managers' average cash level rises above about 5% (4.5% in earlier versions) BofA treats it as a "
+     "contrarian BUY signal; below about 3.5-4% as a SELL signal. Since 2011 the buy signal was followed by "
+     "average S&P 500 gains of about 7% over six months.",
+     "When professionals are most fearful (high cash), returns afterwards have tended to be good: fear is a signal.",
+     "https://www.ii.co.uk/analysis-commentary/professional-investor-pessimism-triggers-buy-signal-ii529538"),
+    ("Prospect theory and loss aversion", "Kahneman and Tversky (1979), Econometrica",
+     "People feel losses roughly twice as strongly as equal gains. This explains panic selling in crashes and "
+     "holding losers too long.",
+     "Panic is a predictable human reaction, which is why fear peaks tend to overshoot the real economic damage.",
+     "https://doi.org/10.2307/1914185"),
+]
+
+
+def build_studies(wb):
+    ws = wb.create_sheet("Forecast_Studies")
+    title(ws, "Forecast Studies — what research says about expert predictions, and the lesson for our point system",
+          "Summaries of published research. Please read the sources for the full findings.")
+    header(ws, 4, ["Study", "Who / when", "Main finding", "Lesson for our system", "Source"], height=30)
+    for r, row in enumerate(STUDIES, start=5):
+        for c, v in enumerate(row, start=1):
+            cell = ws.cell(r, c, v)
+            cell.font, cell.border = F_BASE, BOX
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        ws.cell(r, 1).font = F_BOLD
+        ws.cell(r, 5).hyperlink = row[4]
+        ws.cell(r, 5).font = Font(name=FONT, size=9, color="0563C1", underline="single")
+    widths(ws, {"A": 26, "B": 26, "C": 70, "D": 50, "E": 40})
+    r = 6 + len(STUDIES)
+    ws.cell(r, 1, "Summary").font = Font(name=FONT, size=11, bold=True, color="1F3864")
+    ws.cell(r + 1, 1, "Experts rarely predict crises in time and are usually too optimistic before them and too "
+                      "pessimistic at the bottom. So we use their forecasts as a SENTIMENT reading, not as a target: "
+                      "extreme gloom is scored as fear (often near a bottom), extreme confidence as greed. "
+                      "Log forecasts on the Forecast_Tracker sheet to measure each source's real hit rate.").font = F_BASE
+    ws.merge_cells(start_row=r + 1, start_column=1, end_row=r + 1, end_column=5)
+    ws.cell(r + 1, 1).alignment = Alignment(wrap_text=True, vertical="top")
+    ws.row_dimensions[r + 1].height = 45
+
+
+TRACK_ROWS = 500
+
+
+def build_tracker(wb, mdc, last_md):
+    ws = wb.create_sheet("Forecast_Tracker")
+    title(ws, "Forecast Tracker — log analyst / brokerage predictions and see how they turned out (formulas)",
+          "Enter the yellow columns. The sheet looks up Nifty on the forecast date and at the end of the horizon, "
+          "and the Panic Meter reading when the forecast was made. Row 5 is an EXAMPLE: replace it.")
+    heads = ["Forecast date", "Source (analyst / brokerage / media)", "Forecast in words", "Predicted direction (Up/Down)",
+             "Predicted Nifty level", "Horizon (calendar days)", "Nifty on forecast date", "Panic score on forecast date",
+             "Target date", "Nifty at target date", "Actual Nifty change", "Direction correct? (1/0)",
+             "Level error", "Status"]
+    header(ws, 4, heads, height=60)
+    md = lambda k: f"Market_Daily!${mdc[k]}$2:${mdc[k]}${last_md}"  # noqa: E731
+    example = [pd.Timestamp("2025-01-02").to_pydatetime(), "Example Broker (replace)",
+               "Nifty to reach 26,000 within a year", "Up", 26000, 365]
+    end = 4 + TRACK_ROWS
+    for i in range(TRACK_ROWS):
+        r = 5 + i
+        if i == 0:
+            for c, v in enumerate(example, start=1):
+                ws.cell(r, c, v)
+        for c in range(1, 7):
+            ws.cell(r, c).fill, ws.cell(r, c).font = FILL_INPUT, F_INPUT
+        ws.cell(r, 7, f'=IF(A{r}="","",IFERROR(INDEX({md("Nifty")},MATCH(A{r},{md("Date")},1)),""))')
+        ws.cell(r, 8, f'=IF(A{r}="","",IFERROR(INDEX({md("Panic")},MATCH(A{r},{md("Date")},1)),""))')
+        ws.cell(r, 9, f'=IF(OR(A{r}="",F{r}=""),"",A{r}+F{r})')
+        ws.cell(r, 10, f'=IF(I{r}="","",IF(I{r}>MAX({md("Date")}),"",IFERROR(INDEX({md("Nifty")},MATCH(I{r},{md("Date")},1)),"")))')
+        ws.cell(r, 11, f'=IF(OR(G{r}="",J{r}=""),"",J{r}/G{r}-1)')
+        ws.cell(r, 12, f'=IF(OR(K{r}="",D{r}=""),"",IF(OR(AND(D{r}="Up",K{r}>0),AND(D{r}="Down",K{r}<0)),1,0))')
+        ws.cell(r, 13, f'=IF(OR(E{r}="",J{r}=""),"",E{r}/J{r}-1)')
+        ws.cell(r, 14, f'=IF(A{r}="","",IF(J{r}="","Pending",IF(L{r}=1,"Correct","Wrong")))')
+    for col, fmt in (("A", "dd-mmm-yyyy"), ("E", "#,##0"), ("G", "#,##0"), ("H", "0"), ("I", "dd-mmm-yyyy"),
+                     ("J", "#,##0"), ("K", PCT), ("M", PCT)):
+        for c in ws[f"{col}5:{col}{end}"]:
+            c[0].number_format = fmt
+    dv = DataValidation(type="list", formula1='"Up,Down"', allow_blank=True)
+    ws.add_data_validation(dv)
+    dv.add(f"D5:D{end}")
+    ws.conditional_formatting.add(f"N5:N{end}", CellIsRule(operator="equal", formula=['"Correct"'], fill=GREEN_FILL))
+    ws.conditional_formatting.add(f"N5:N{end}", CellIsRule(operator="equal", formula=['"Wrong"'], fill=RED_FILL))
+    ws.conditional_formatting.add(f"H5:H{end}", panic_scale())
+    ws.freeze_panes = "C5"
+
+    # ---- scorecard by source
+    header(ws, 4, ["Source (type names to score)", "Forecasts checked", "Hit rate", "Avg level error",
+                   "Hit rate when Panic >= 60", "Hit rate when Panic < 40"], col=16, height=60)
+    rng = lambda c: f"${c}$5:${c}${end}"  # noqa: E731
+    for i in range(15):
+        r = 5 + i
+        cell = ws.cell(r, 16, "Example Broker (replace)" if i == 0 else None)
+        cell.fill, cell.font, cell.border = FILL_INPUT, F_INPUT, BOX
+        ws.cell(r, 17, f'=IF(P{r}="","",COUNTIFS({rng("B")},P{r},{rng("L")},"<>"))')
+        ws.cell(r, 18, f'=IF(OR(P{r}="",Q{r}=0),"",AVERAGEIFS({rng("L")},{rng("B")},P{r}))')
+        ws.cell(r, 19, f'=IF(OR(P{r}="",Q{r}=0),"",IFERROR(AVERAGEIFS({rng("M")},{rng("B")},P{r}),""))')
+        ws.cell(r, 20, f'=IF(P{r}="","",IFERROR(AVERAGEIFS({rng("L")},{rng("B")},P{r},{rng("H")},">=60"),""))')
+        ws.cell(r, 21, f'=IF(P{r}="","",IFERROR(AVERAGEIFS({rng("L")},{rng("B")},P{r},{rng("H")},"<40"),""))')
+    style_range(ws, "Q5:U19")
+    for col in "RSTU":
+        style_range(ws, f"{col}5:{col}19", PCT)
+    ws.cell(21, 16, "A source whose hit rate falls when panic is high is following the crowd's emotion.").font = F_NOTE
+    widths(ws, {"A": 12, "B": 24, "C": 36, "D": 11, "E": 11, "F": 10, "G": 11, "H": 10, "I": 12, "J": 11, "K": 11,
+                "L": 10, "M": 10, "N": 10, "O": 3, "P": 26})
+    for col in "QRSTU":
+        ws.column_dimensions[col].width = 12
+
+
 # ---------------------------------------------------------------- how to use
 def build_howto(wb, n_events, n_stocks, first, last):
     ws = wb.create_sheet("How_To_Use", 0)
@@ -726,8 +1166,10 @@ def build_howto(wb, n_events, n_stocks, first, last):
     lines = [
         ("What this does", None),
         ("", f"Measures how Nifty and your {n_stocks} watchlist stocks reacted to {n_events} events between "
-             f"{first} and {last}: elections, budgets, RBI rate decisions, crude oil shocks, global and "
-             "geopolitical shocks. It turns market emotion into numbers your mathematical model can use."),
+             f"{first} and {last}: elections, budgets, RBI rate decisions, crude oil shocks, bank collapses, "
+             "government crises, blackouts and supply shocks, pandemics, global and geopolitical shocks. It also "
+             "measures every major recession / bear market from peak to recovery, scores the market's panic level "
+             "daily, and checks expert forecasts against outcomes."),
         ("Phases measured", None),
         ("BEFORE", "Run-up in the 20 and 5 trading days before the event (did the market anticipate it?)."),
         ("DURING", "Move on the event day (T0) and the intraday worst point."),
@@ -747,16 +1189,24 @@ def build_howto(wb, n_events, n_stocks, first, last):
         ("Crude_Ranges", "At what size of crude move (and what crude price level) Nifty and industries react."),
         ("FII_DII", "Your daily FII/DII data linked to Nifty moves; paste more history to extend it."),
         ("Target_Adjuster", "Pick a stock and an upcoming event: get adjusted short/long-term targets and stop-loss."),
-        ("Stock_Event_Data, Market_Daily", "Raw measurements that the formulas read (do not edit)."),
+        ("Panic_Meter", "Daily 0-100 panic score (VIX, drawdown, speed of fall, breadth, rupee) and what Nifty did "
+                        "next at each panic level, for days and for events."),
+        ("Crisis_Periods", "Every recession / bear market since 1997: depth, duration, recovery time, panic peak, "
+                           "and the 1-year return from buying early, at the bottom or after a 20% bounce."),
+        ("Crisis_Scorecard, Crisis_Sectors", "How each stock and industry behaved in crises; defenders and "
+                                             "recovery leaders are also on Top_Lists."),
+        ("Forecast_Studies", "Famous research on how accurate expert and analyst predictions are."),
+        ("Forecast_Tracker", "Log analyst predictions: the sheet checks them against what Nifty actually did."),
+        ("Stock_Event_Data, Crisis_Stock_Data, Market_Daily", "Raw measurements that the formulas read (do not edit)."),
         ("Colour code", None),
         ("Yellow fill, blue text", "Inputs you can change."),
         ("Black text", "Formulas or measured data; do not type over them."),
         ("Green / red shading", "Higher / lower values; FEAR rows red, GREED rows green."),
         ("Data and limits", None),
         ("Prices", "Yahoo Finance daily prices (split-adjusted), downloaded with download_data.py. Yahoo's Nifty "
-                   "history starts Sep-2007, so the 2004-2007 events use Sensex. One-day data spikes are removed, "
+                   "history starts Sep-2007, so the 1997-2007 events use Sensex (from Jul-1997). One-day data spikes are removed, "
                    "and stock windows containing an unadjusted split/demerger jump are skipped."),
-        ("Event dates", "Compiled for this analysis from public knowledge: please verify, especially recent events. "
+        ("Event dates", "Compiled for this analysis from public knowledge: please verify, especially recent and pre-2004 events. "
                         "If an event fell on a holiday or weekend, T0 is the next trading day."),
         ("FII/DII", "Only your Jun-Oct 2026 tracker data is available here; long history must be downloaded from NSE/NSDL."),
         ("Caution", "History shows tendencies, not certainties. Small categories (few events) carry low confidence."),
@@ -794,9 +1244,10 @@ def main():
     se["Nifty_Day0"] = se["Event_ID"].map(ev["Day0"])
     se["Nifty_Total20"] = se["Event_ID"].map(ev["Total20"])
 
-    order = ["Central Election", "Exit Poll", "State Election", "Union Budget", "Interim Budget",
-             "RBI Rate Hike", "RBI Rate Cut", "RBI Pause", "Crude Spike", "Crude Crash",
-             "Global Shock", "Geopolitical", "Domestic Shock", "Policy Shock"]
+    order = ["Central Election", "Exit Poll", "State Election", "Government Crisis", "Union Budget",
+             "Interim Budget", "RBI Rate Hike", "RBI Rate Cut", "RBI Pause", "Crude Spike", "Crude Crash",
+             "Bank Collapse", "Pandemic", "Industrial/Supply Shock", "Global Shock", "Geopolitical",
+             "Domestic Shock", "Policy Shock"]
     categories = [c for c in order if c in set(ni["Category"])] + \
                  sorted(set(ni["Category"]) - set(order))
     industries = sorted(watch["Industry"].dropna().unique())
@@ -804,6 +1255,7 @@ def main():
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
     build_settings(wb)
+    mdc, last_md = build_market_daily(wb, md)
     build_calendar(wb, ni)
     last_ni = build_nifty_impact(wb, ni)
     cat_list = build_category_summary(wb, categories, last_ni)
@@ -811,9 +1263,15 @@ def main():
     end_sc = build_scorecard(wb, watch, last_se)
     build_top_lists(wb, end_sc)
     build_sector(wb, industries, categories, last_se)
-    mdc, last_md = build_market_daily(wb, md)
     build_crude(wb, mdc, last_md)
     build_fii(wb, mdc, last_md)
+    build_panic(wb, mdc, last_md, last_ni)
+    cp = pd.read_csv(DATA / "crisis_periods.csv")
+    cs = pd.read_csv(DATA / "crisis_stocks.csv")
+    send = build_crisis(wb, cp, cs, watch, mdc, last_md)
+    add_crisis_top_lists(wb, send)
+    build_studies(wb)
+    build_tracker(wb, mdc, last_md)
 
     px = pd.read_csv(DATA / "prices" / "RELIANCE.csv")
     cmp_ = round(float(px["Close"].iloc[-1]), 2)
@@ -824,9 +1282,10 @@ def main():
     last = pd.Timestamp(ni["Trading_Day"].max()).strftime("%b-%Y")
     build_howto(wb, len(ni), len(watch), first, last)
 
-    order_sheets = ["How_To_Use", "Settings", "Target_Adjuster", "Category_Summary", "Top_Lists",
-                    "Stock_Scorecard", "Sector_Impact", "Crude_Ranges", "FII_DII", "Event_Calendar",
-                    "Nifty_Impact", "Stock_Event_Data", "Market_Daily"]
+    order_sheets = ["How_To_Use", "Settings", "Target_Adjuster", "Panic_Meter", "Category_Summary",
+                    "Crisis_Periods", "Top_Lists", "Stock_Scorecard", "Crisis_Scorecard", "Sector_Impact",
+                    "Crisis_Sectors", "Crude_Ranges", "FII_DII", "Forecast_Studies", "Forecast_Tracker",
+                    "Event_Calendar", "Nifty_Impact", "Stock_Event_Data", "Crisis_Stock_Data", "Market_Daily"]
     wb._sheets = [wb[n] for n in order_sheets]
     wb.active = 0
     for ws in wb.worksheets:

@@ -12,7 +12,7 @@ import yfinance as yf
 
 HERE = Path(__file__).parent
 OUT = HERE / "data" / "prices"
-START = "2004-01-01"
+START = "1997-01-01"
 
 # Market-wide series. Yahoo's Nifty history starts Sep-2007, so Sensex covers 2004-2007.
 MARKET = {

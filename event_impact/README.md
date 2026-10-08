@@ -1,6 +1,6 @@
 # Event Impact Analyzer
 
-Measures the market's **fear and greed** around news events and turns it into numbers for the trading model.
+Measures the market's **fear and greed** around news events (elections, budgets, RBI, crude, bank collapses, government crises, blackouts, pandemics, global shocks) and crisis periods since 1997, and turns it into numbers for the trading model.
 
 Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
 
@@ -17,6 +17,10 @@ Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
 | At what size of crude move / crude price level does the market react? | Crude_Ranges |
 | What do FII and DII flows do to Nifty? | FII_DII |
 | How should I adjust my short-term and long-term targets for an upcoming event? | Target_Adjuster |
+| How frightened is the market today, and what followed similar panic levels in the past? | Panic_Meter |
+| How deep and long were past recessions / bear markets, and when was it best to buy? | Crisis_Periods |
+| Which stocks and industries defended best in crises, and which recovered fastest? | Crisis_Scorecard, Crisis_Sectors, Top_Lists |
+| How accurate are expert and analyst predictions? | Forecast_Studies, Forecast_Tracker |
 
 ## Files
 
