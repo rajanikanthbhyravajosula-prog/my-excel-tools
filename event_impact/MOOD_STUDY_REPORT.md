@@ -1,6 +1,6 @@
 # Market Moods Study — Fear, Greed and How to Use Them in Our Trading
 
-*SLNS Vaibhavam — trading research notes. Prepared 8 October 2026. Data up to 6 October 2026.*
+*SLNS Vaibhavam — trading research notes. Prepared 8 October 2026 (updated with the US-markets study). Data up to 6 October 2026.*
 
 > **In one line:** our software already calculates targets from mathematics; this study adds a measured
 > "emotion layer" — how frightened or greedy the market is, how long each mood lasts, what usually
@@ -39,6 +39,7 @@ This is research on historical tendencies, not investment advice. History shows 
 | 5 | Famous studies of analyst predictions; panic level vs outcomes | Added Forecast Studies, a Forecast Tracker and a daily **Panic Meter** (0–100). |
 | 6 | Splits/bonuses/buybacks, government policy changes, portfolio-manager strategies, which countries recovered, US policy, Iran–US war, Russia–Ukraine, current phase | Verified corporate-action handling, added 2025–26 events, the ongoing 2026 crisis, 12 world markets and documented strategy shifts. |
 | 7 | Overall conclusions, implementation, mood changes, time frames, when to enter / stay away | This report, plus new back-tests of mood rules (section 6). |
+| 8 | Impact of US markets on India, US bond yields and other factors | Added the US_Link sheet (S&P 500, US yields, yield curve, US VIX, dollar, gold) and a US Pressure gauge (section 4.10). |
 
 ---
 
@@ -48,12 +49,13 @@ All files are in the `event_impact/` folder of the `my-excel-tools` repository.
 
 | File | Purpose |
 |---|---|
-| `Event_Impact_Analyzer.xlsx` | The workbook (24 sheets, about 162,000 live formulas, zero errors). Start with *How_To_Use*. |
+| `Event_Impact_Analyzer.xlsx` | The workbook (25 sheets, about 181,000 live formulas, zero errors). Start with *How_To_Use*. |
 | `events.csv` | 220 events from 1997 to 2026 with news context (add new events here). |
 | `watchlist.csv` | Your 205 watchlist stocks with industry and market-cap group (no holdings or prices). |
 | `fii_dii_daily.csv` | Your FII/DII tracker data (Jun–Oct 2026). |
 | `download_data.py` → `analyze.py` → `build_workbook.py` | Re-run these three to refresh everything with new prices and events. |
 | `mood_backtest.py` | The mood duration, transition and back-test calculations used in sections 5–6 of this report. |
+| `us_link_study.py` | Quick script version of the US-markets study (the workbook's US_Link sheet is the reference). |
 | `MOOD_STUDY_REPORT.md` | This report. |
 
 **Main workbook sheets**
@@ -70,6 +72,7 @@ All files are in the `event_impact/` folder of the `my-excel-tools` repository.
 | Sector_Impact, Crisis_Sectors | Industry heat maps by event type and by crisis. |
 | Global_Recovery | India vs 11 world markets: fall, recovery time, rebound. |
 | Strategy_Shifts | Measured sector rotation + documented fund-manager strategy changes. |
+| US_Link | How the S&P 500, US bond yields, the yield curve, US VIX, the dollar and gold move Nifty; US Pressure gauge. |
 | Crude_Ranges | At what crude move / price level the market reacts. |
 | FII_DII | Your flow data linked to Nifty moves. |
 | Forecast_Studies, Forecast_Tracker | Research on expert accuracy; log and score any analyst's predictions. |
@@ -79,7 +82,8 @@ All files are in the `event_impact/` folder of the `my-excel-tools` repository.
 
 ## 3. Data and method
 
-- **Prices:** Yahoo Finance daily prices, adjusted for splits, bonuses and dividends. Nifty from Sep-2007, Sensex from Jul-1997 (used for earlier events), India VIX from 2008, Brent from 2007, USD/INR from 2003, 11 world indices from 1997, and all 205 watchlist stocks.
+- **Prices:** Yahoo Finance daily prices, adjusted for splits, bonuses and dividends. Nifty from Sep-2007, Sensex from Jul-1997 (used for earlier events), India VIX from 2008, Brent from 2007, USD/INR from 2003, 11 world indices from 1997, US 10-year / 3-month / 30-year yields, US VIX, the US dollar index and gold, and all 205 watchlist stocks.
+- **US timing:** US markets close after the Indian close, so each US session is matched with the **next** Indian trading day.
 - **Corporate actions checked:** bonuses (Reliance, TCS, Infosys, HDFC Bank, Bajaj Finance), splits and buybacks show no artificial jumps. Demergers (e.g. Tata Motors 2025, Raymond, ABFRL) cannot be adjusted cleanly, so any event window containing such a jump is skipped. One-day data spikes are removed.
 - **Event windows** (trading days, T0 = event day):
   - BEFORE: run-up over 20 and 5 days before the event.
@@ -205,6 +209,81 @@ Daily history since 2007:
 - **Fund-manager fear is a contrarian signal.** BofA's cash rule treats cash above about 5% as a buy signal. In March–April 2026 managers went to cash and oil; by May they made the biggest jump into equities since 2001.
 - **Structural change in India:** since March 2025, domestic institutions own more of the market than foreigners. SIP money now cushions foreign selling, which is one reason the 2026 fall stayed shallow despite record foreign outflows.
 
+### 4.10 US markets, US bond yields, the dollar and gold
+
+**a) The overnight US move — India copies about a quarter of it**
+
+| S&P 500 in the last US session | Nifty that day | Nifty up that day | Nifty next 20 days | Higher after 20 days |
+|---|---|---|---|---|
+| Fell more than 3% | −1.4% | 24% | −0.8% | 53% |
+| Fell 2–3% | −0.6% | 36% | **+2.3%** | **70%** |
+| Fell 1–2% | −0.4% | 35% | +0.8% | 59% |
+| Rose 1–2% | +0.4% | 66% | +1.2% | 62% |
+| Rose 2–3% | +0.9% | 73% | +2.8% | 65% |
+
+- Daily correlation is only about 0.25: Nifty moves about **0.27% for every 1% US move**. The weekly correlation is 0.4–0.6.
+- A US fall of 2–3% has usually been **a dip to buy** in India; only a US crash of more than 3% carried on into the following weeks.
+- **India is decoupling.** The weekly link was weakest in 2019 (0.18) and 2025 (0.28). In 2026 the S&P 500 is at its high while Nifty is 13.5% below its own, because oil, the rupee and foreign selling drive India more.
+
+**b) US 10-year bond yield — the strongest US factor**
+
+| US 10-year yield change over 20 days | Nifty same 20 days | Nifty next 20 days | Higher after 20 days | Nifty next 1 year |
+|---|---|---|---|---|
+| Fell more than 50 bp | −4.1% | +0.9% | 54% | +28.5% |
+| Fell 25–50 bp | −0.8% | +1.5% | **70%** | +7.8% |
+| Rose 25–50 bp | −0.2% | −0.4% | 43% | +13.2% |
+| **Rose more than 50 bp** | +1.4% | **−2.1%** | **35%** | +16.2% |
+
+| US 10-year yield level | Nifty next 60 days | Nifty next 1 year | Higher after 1 year |
+|---|---|---|---|
+| Below 2% | +3.7% | +17.2% | 90% |
+| 2–3% | +3.8% | +12.5% | 76% |
+| 3–4% | −0.2% | +8.8% | 73% |
+| 4–4.5% | −0.3% | +0.7% | 61% |
+| 4.5–5% | +7.5% | +6.2% | 78% (mostly 2023–24, few years) |
+| Above 5% | not enough history (only the last few days) | | |
+
+- **Fast-rising US yields are a short-term headwind** (foreign money goes home); after a year Nifty usually recovered.
+- **High yield levels mean lower returns ahead**: from +17% a year when yields were below 2% to about +1–6% above 4%.
+- **An inverted US yield curve did not hurt India**: Nifty was higher a year later 92% of the time when the curve was deeply inverted. It is a US recession warning, not an Indian one.
+
+**c) US VIX (fear in the US market)**
+
+| US VIX | Nifty next 20 days | Nifty next 1 year | Higher after 1 year |
+|---|---|---|---|
+| Below 15 | +0.5% | +11.1% | 82% |
+| 15–20 | +0.1% | +5.6% | 68% |
+| 30–40 | +2.7% | +23.6% | 98% |
+| **Above 40** | +3.0% | **+65.8%** | **100%** |
+
+- **US panic has been a buying chance for India too** (2008, 2020).
+- A one-day jump of more than 30% in US VIX (38 times) was followed by a Nifty fall the next day 74% of the time (−1.0% on average).
+
+**d) The US dollar**
+
+| Dollar index change over 20 days | Nifty same 20 days | Nifty higher in those 20 days |
+|---|---|---|
+| Fell more than 3% | **+4.6%** | 78% |
+| Flat (±1%) | +1.1% | 63% |
+| Rose more than 3% | **−3.2%** | **32%** |
+
+A strong dollar means a weaker rupee and foreign outflows; it moves *together* with Nifty falls rather than predicting them.
+
+**e) Gold** — in US dollars, gold did **not** protect against Nifty falls over 20-day windows (only +0.5% while Nifty fell 10% or more). For an Indian investor most of gold's protection comes from rupee weakness.
+
+**f) US Pressure gauge (new, 0–100)** — average of three scores: US 10-year yield change over 20 days (−25 bp → +75 bp), dollar index change over 20 days (−2% → +5%) and US VIX (12 → 45).
+
+| US Pressure | Days | Nifty same 20 days | Nifty next 20 days | Nifty next 1 year |
+|---|---|---|---|---|
+| 0–20 | 1,598 | +1.9% | +1.1% | +7.1% |
+| 20–40 | 2,267 | +1.1% | +0.7% | +11.6% |
+| 40–60 | 674 | **−1.1%** | +0.3% | +15.2% |
+| 60+ | 135 | **−6.4%** | +1.9% | **+43.8%** |
+
+US pressure explains *current* weakness well (Nifty falls while it is high) and extreme readings, like extreme panic, have been followed by strong years.
+
+**Tested and rejected:** adding US yields, the dollar or US VIX into the Panic Meter itself. US yields sharpened the one-year signal (Nifty +70% after "Panic" days instead of +59%) but **weakened the short-term signal**, so the tested five-part Panic Meter is kept unchanged and US Pressure is shown as a separate warning light.
+
 ---
 
 ## 5. The mood framework: zones, signals and time frames
@@ -277,6 +356,10 @@ Major fear episodes (panic 60+, short gaps merged):
 | Crude | +20% in 20 days, or above $110–120 | Back below $90 |
 | FII flows | Several days of heavy selling (more than ₹3,000 cr) | Selling slows; DIIs keep absorbing |
 | Fund-manager cash (BofA) | Below 4% (greed) | Above 5% (fear, a contrarian buy) |
+| US 10-year yield | Rises more than 50 bp in 20 days | Falls 25 bp or more in 20 days |
+| US dollar index | Rises 3%+ in 20 days | Falls back |
+| US Pressure gauge | Above 50 | Below 40 |
+| S&P 500 overnight | Falls more than 3% (follow-through risk) | A 2–3% US fall that India shrugs off |
 | News | Negative *surprise* | Bad news stops pushing prices lower |
 
 **Important:** "fear fading" alone is not a buy signal in a new bear market. In early 2008 it fired three times, and Nifty was still 25–50% lower a year later. It worked in 2009, 2012, 2013 and 2020, when the fall was already 25% or more.
@@ -322,7 +405,7 @@ Layer 3  Mood & event layer (this study) →  Adjust targets, stop-loss, size an
 
 ### 7.1 Daily inputs (all available free, after 6 pm)
 
-Nifty close and 200-day average, India VIX, USD/INR, Brent, FII/DII net flows, the share of watchlist stocks above their 200-day average, and the calendar of upcoming events. The workbook's Market_Daily and Panic_Meter sheets already calculate the score from these.
+Nifty close and 200-day average, India VIX, USD/INR, Brent, FII/DII net flows, the share of watchlist stocks above their 200-day average, the previous night's S&P 500 move, US 10-year yield, US VIX and dollar index, and the calendar of upcoming events. The workbook's Market_Daily and Panic_Meter sheets already calculate the score from these.
 
 ### 7.2 Formulas to add to our software
 
@@ -372,7 +455,16 @@ Position size (shares) = Rupees you accept to lose per trade / (CMP − Stop-los
 → in fear the stop-loss is wider, so the position automatically becomes smaller
 ```
 
-**g) Event points** (in Category_Summary)
+**g) US Pressure warning** (US_Link sheet)
+```
+US Pressure = average of three 0–100 scores (US 10-year yield 20-day change, dollar 20-day change, US VIX)
+If US Pressure > 50 or the US 10-year rose more than 50 bp in 20 days:
+    → no new aggressive buying for 20 days; tighten stop-losses on high-beta and FII-heavy stocks
+If US VIX > 40 (US panic):
+    → treat like an Indian panic: staggered buying for the long term
+```
+
+**h) Event points** (in Category_Summary)
 ```
 Direction points (−10 to +10) = average 20-day move after the event type ÷ 0.5%
 Risk points (0 to 10)         = average worst fall ÷ 1%
@@ -383,7 +475,8 @@ Use the "Surprise?" field: halve the points if the outcome was fully expected
 
 | When | Action |
 |---|---|
-| **Daily** (after 6 pm) | Update the FII/DII tracker; check the Panic score, Nifty vs its 200-day average and the zone. |
+| **Morning** (before 9:15) | Check the last US session: S&P 500 move, US VIX, US 10-year yield and the dollar. A US fall of more than 3% or a VIX jump of 30%+ = expect a weak open; a 2–3% US fall = watch for a dip to buy. |
+| **Daily** (after 6 pm) | Update the FII/DII tracker; check the Panic score, US Pressure, Nifty vs its 200-day average and the zone. |
 | **Weekly** | Re-run the three scripts; review Top_Lists and your holdings' Event Beta; check upcoming events in the calendar. |
 | **Before every known event** (budget, RBI, elections, Fed) | Run Target_Adjuster for each holding; follow the event's "best entry" from section 4.3. |
 | **Monthly** | Log brokerage and analyst targets in Forecast_Tracker; review SIP top-ups if panic reached 60. |
@@ -415,6 +508,7 @@ Use the "Surprise?" field: halve the points if the outcome was fully expected
 - **Before Union Budgets** (only 34% were higher 20 days later) and around **global shocks and pandemics**. These are the deepest and slowest-healing event types.
 - When **Brent is above $120** or crude has risen more than 20% in a month, reduce exposure to paints, aviation and oil marketing companies; pharma and IT have held up best in such weeks.
 - When foreign selling is heavy **and** the rupee is breaking down: the 2013 and 2026 pattern.
+- When **US 10-year yields rise more than 50 bp in a month** or the **dollar rises 3%+**: these have been the worst US backdrops for Nifty over the next month.
 
 ### 8.4 How to "cash it": taking profits
 - Fear events reward the buyer *after* the shock. Greed events reward the buyer *on* the day and **the seller into strength**: greed episodes reverse within days.
@@ -436,6 +530,11 @@ Use the "Surprise?" field: halve the points if the outcome was fully expected
 | Brent | $101.5 | Iran war, Hormuz still restricted |
 | Rupee | 96.7 per $ | Record low; record foreign selling in 2026 |
 | RBI | Repo raised to 5.50% on 7 Oct 2026 | Rate-hike events: best entry historically 5 days after |
+| US 10-year yield | **5.31%, up 53 bp in 20 days** | The worst bucket for Nifty's next 20 days (−2.1%, higher only 35% of the time); level above 5% is new territory |
+| US dollar index | **+3.0% in 20 days** | Strong dollar = rupee and FII pressure |
+| US VIX | 15.5 | No US panic |
+| S&P 500 | At its high | India decoupled: the problem is local (oil, rupee, FII), not US stocks |
+| **US Pressure gauge** | **53 — headwind** | Above 50: no aggressive buying, tighter stops |
 
 **Playbook reading: "Downtrend + Worried"**, which calls for staying partly away (about 50%), keeping cash in a liquid fund, continuing SIPs and preparing the buy list.
 
@@ -443,6 +542,7 @@ What would change the reading:
 - **Panic rises to 60+** while the March low breaks: start staggered buying, defenders first.
 - **Nifty above its 200-day average (about 24,300)** or **20% above the low (about 26,800)**: the recovery is confirmed, so return to fully invested and rotate to recovery leaders.
 - **A durable Iran ceasefire and Brent back under $90** is the most likely trigger for an improving mood. The April 2026 ceasefire produced a +3.8% day.
+- **US yields falling back** (a fall of 25 bp or more in 20 days has been followed by Nifty higher 70% of the time) and the dollar easing would remove the second headwind. The September 2026 jump in US yields coincided with record foreign selling.
 - Compared with history, this crisis is **shallow** (−15% against an average of −30%, and 82% of past crises fell deeper). It's also **long** (185 trading days since the peak against 169 days falling on average). Domestic SIP money is cushioning the fall.
 
 ---
@@ -468,6 +568,7 @@ What would change the reading:
 - India VIX only exists from 2008, so the Panic Meter can't score crises before then.
 - FII/DII history is only Jun–Oct 2026. Long history from NSE or NSDL would strengthen the flow analysis.
 - Back-tests ignore taxes, brokerage, STT and slippage.
+- US yields above 4.5% occurred only in 2023–24 and 2026 within the Nifty history, so those rows rest on few years. India's own 10-year bond yield is not available from Yahoo; adding it (from RBI/CCIL) would allow the India–US yield-gap analysis.
 
 **Suggested next steps**
 1. Download long-term FII/DII history from NSE or NSDL and paste it into the FII_DII sheet.
@@ -506,4 +607,4 @@ What would change the reading:
 - Hartnett on Iran war winners and losers — https://www.investing.com/news/stock-market-news/bofas-hartnett-flags-asset-winners-and-losers-from-prolonged-iran-war-4546287
 - Russia–Ukraine status 2026 — https://www.cbsnews.com/news/russia-ukraine-war-no-rush-for-peace-moscow-says-despite-trump-push/
 
-**Price data:** Yahoo Finance (via the `yfinance` package). All other figures in this report are calculated in `Event_Impact_Analyzer.xlsx` and `mood_backtest.py`.
+**Price data:** Yahoo Finance (via the `yfinance` package), including US Treasury yields (^TNX, ^IRX, ^TYX), US VIX (^VIX), the US dollar index (DX-Y.NYB) and gold futures (GC=F). All other figures in this report are calculated in `Event_Impact_Analyzer.xlsx` and `mood_backtest.py`.

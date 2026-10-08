@@ -21,6 +21,7 @@ Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
 | How deep and long were past recessions / bear markets, and when was it best to buy? | Crisis_Periods |
 | Which stocks and industries defended best in crises, and which recovered fastest? | Crisis_Scorecard, Crisis_Sectors, Top_Lists |
 | How accurate are expert and analyst predictions? | Forecast_Studies, Forecast_Tracker |
+| How do the US market, US bond yields, US VIX, the dollar and gold move Nifty? | US_Link |
 | Where are we in the current (2026) crisis compared with history? | Crisis_Periods (WHERE ARE WE NOW) |
 | Which countries recovered from each crisis and which did not? | Global_Recovery |
 | Where did professional money move in each crisis? | Strategy_Shifts |
@@ -32,6 +33,7 @@ Open **`Event_Impact_Analyzer.xlsx`** and start with the *How_To_Use* sheet.
 | `events.csv` | Event calendar with news context (edit to add events) |
 | `watchlist.csv` | Watchlist symbols, industry and market-cap group |
 | `fii_dii_daily.csv` | Daily FII/DII data from the shares worksheet tracker |
+| `MOOD_STUDY_REPORT.md` | Full study report: findings, mood time frames, back-tests, implementation, playbook |
 | `download_data.py` | Downloads daily prices from Yahoo Finance into `data/prices/` |
 | `analyze.py` | Measures every event for Nifty and each stock |
 | `build_workbook.py` | Builds the Excel workbook (summaries are live formulas) |

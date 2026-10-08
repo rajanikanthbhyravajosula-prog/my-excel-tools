@@ -442,6 +442,27 @@ def main():
             d[f"{group}_Next5"] = pd.concat(nxt, axis=1).mean(axis=1)
     for col in ["Nifty_Next60", "Nifty_Next250", "Drawdown", "Return20", "Breadth", "Rupee"]:
         d[col] = panic[col]
+    # US markets close after India: attach the last US session BEFORE each Indian trading day
+    usx = pd.DataFrame({k: load(f)["Close"] for k, f in
+                        (("SP", "G_US_SP500"), ("Y10", "US_10Y"), ("Y3M", "US_3M"), ("UVIX", "US_VIX"),
+                         ("DXY", "DXY"), ("GOLD", "GOLD"))}).ffill()
+    usx = pd.DataFrame({
+        "US_SP500_Prev": usx["SP"].pct_change(),
+        "US_10Y": usx["Y10"],
+        "US_10Y_20d_bps": (usx["Y10"] - usx["Y10"].shift(20)) * 100,
+        "US_Curve": usx["Y10"] - usx["Y3M"],
+        "US_VIX": usx["UVIX"],
+        "DXY_20d": usx["DXY"].pct_change(20),
+        "Gold_20d": usx["GOLD"].pct_change(20),
+    })
+    j = pd.merge_asof(pd.DataFrame(index=d.index).reset_index(), usx.reset_index().rename(columns={"index": "US_Date", "Date": "US_Date"}),
+                      left_on="Date", right_on="US_Date", allow_exact_matches=False).set_index("Date")
+    for col in usx.columns:
+        d[col] = j[col]
+    # weekly Nifty vs S&P 500 correlation by year (shown on the US_Link sheet)
+    wk = pd.DataFrame({"N": nifty["Close"], "SP": load("G_US_SP500")["Close"]}).ffill().resample("W-FRI").last().pct_change().dropna()
+    pd.DataFrame([{"Year": y, "Weekly_Correlation": g["N"].corr(g["SP"])} for y, g in wk.groupby(wk.index.year)]).to_csv(
+        OUT / "us_correlation.csv", index=False)
     d = d[d["Brent"].notna()]
     d.to_csv(OUT / "market_daily.csv", index_label="Date")
     cp, cs = crisis_periods(nifty, sensex, vix, stocks)

@@ -510,6 +510,16 @@ PANIC_COMPONENTS = [  # (Market_Daily column, label, calm value -> score 0, fear
 ]
 PANIC_ROW0 = 6  # first scale row on the Panic_Meter sheet
 SCORE_COLS = [f"{k}_Score" for k, *_ in PANIC_COMPONENTS]
+US_COMPONENTS = [  # (Market_Daily column, label, calm value -> 0, pressure value -> 100, meaning)
+    ("US_10Y_20d_bps", "US 10-year yield change over 20 days (bp)", -25, 75,
+     "Rising US yields pull foreign money out of India. A rise of more than 50 bp in a month has been the worst bucket for Nifty."),
+    ("DXY_20d", "US dollar index change over 20 days", -0.02, 0.05,
+     "A strong dollar means a weak rupee and FII outflows."),
+    ("US_VIX", "US VIX level", 12, 45, "Fear in the US market; 40+ has marked global bottoms."),
+]
+US_ROW0 = 5  # first scale row on the US_Link sheet
+US_SCORE_COLS = ["USY_Score", "DXY_Score", "USVIX_Score"]
+US_FMT = {"US_10Y": "0.00", "US_10Y_20d_bps": "0", "US_Curve": "0.00", "US_VIX": "0.00"}
 
 
 def panic_scale():
@@ -519,7 +529,7 @@ def panic_scale():
 
 def build_market_daily(wb, md):
     ws = wb.create_sheet("Market_Daily")
-    cols = list(md.columns) + SCORE_COLS + ["Panic"]
+    cols = list(md.columns) + SCORE_COLS + ["Panic"] + US_SCORE_COLS + ["US_Pressure"]
     MDC.update({name: L(i + 1) for i, name in enumerate(cols)})
     header(ws, 1, cols, height=45)
     for r, row in enumerate(md.itertuples(index=False), start=2):
@@ -533,10 +543,17 @@ def build_market_daily(wb, md):
             ws[f"{MDC[SCORE_COLS[k]]}{r}"] = f'=IF({x}="","",MAX(0,MIN(100,({x}-{calm})/({fear}-{calm})*100)))'
         sc = f"{MDC[SCORE_COLS[0]]}{r}:{MDC[SCORE_COLS[-1]]}{r}"
         ws[f"{MDC['Panic']}{r}"] = f'=IF(COUNT({sc})<3,"",AVERAGE({sc}))'
+        for k, (comp, *_rest) in enumerate(US_COMPONENTS):
+            x, row_s = f"{MDC[comp]}{r}", US_ROW0 + k
+            calm, fear = f"US_Link!$B${row_s}", f"US_Link!$C${row_s}"
+            ws[f"{MDC[US_SCORE_COLS[k]]}{r}"] = f'=IF({x}="","",MAX(0,MIN(100,({x}-{calm})/({fear}-{calm})*100)))'
+        usc = f"{MDC[US_SCORE_COLS[0]]}{r}:{MDC[US_SCORE_COLS[-1]]}{r}"
+        ws[f"{MDC['US_Pressure']}{r}"] = f'=IF(COUNT({usc})<2,"",AVERAGE({usc}))'
     last = len(md) + 1
     for c, name in enumerate(cols, start=1):
         fmt = ("dd-mmm-yyyy" if name == "Date" else "#,##0.00" if name in ("Nifty", "Brent")
-               else "0.00" if name == "VIX" else "0" if name in SCORE_COLS + ["Panic"] else PCT)
+               else "0.00" if name == "VIX" else US_FMT.get(name) if name in US_FMT
+               else "0" if name in SCORE_COLS + ["Panic"] + US_SCORE_COLS + ["US_Pressure"] else PCT)
         for cell in ws[f"{L(c)}2:{L(c)}{last}"]:
             cell[0].number_format = fmt
     ws.freeze_panes = "B2"
@@ -1268,6 +1285,121 @@ def build_strategy(wb, crises):
     widths(ws, {"A": 40, "B": 30, "C": 60, "D": 50, "E": 40})
 
 
+# ---------------------------------------------------------------- US link
+def build_us_link(wb, mdc, last_md, corr):
+    ws = wb.create_sheet("US_Link")
+    title(ws, "US Link — how the US market, US bond yields, US VIX, the dollar and gold move Nifty (formulas)",
+          "US markets close after India, so every US value here is the LAST US SESSION BEFORE the Indian trading day. "
+          "Yellow cells are editable. The US Pressure gauge (0-100) is a separate warning light next to the Panic Meter.")
+    header(ws, 4, ["US Pressure component", "Calm value (score 0)", "Pressure value (score 100)", "Meaning"])
+    for k, (comp, label, calm, fear, meaning) in enumerate(US_COMPONENTS):
+        r = US_ROW0 + k
+        ws.cell(r, 1, label).font = F_BASE
+        fmt = PCT if comp == "DXY_20d" else "0"
+        for c, v in ((2, calm), (3, fear)):
+            cell = ws.cell(r, c, v)
+            cell.font, cell.fill, cell.number_format, cell.border = F_INPUT, FILL_INPUT, fmt, BOX
+        ws.cell(r, 4, meaning).font = F_NOTE
+    md = lambda k: f"Market_Daily!${mdc[k]}$2:${mdc[k]}${last_md}"  # noqa: E731
+    last = f"COUNT({md('Nifty')})"
+    r0 = US_ROW0 + len(US_COMPONENTS) + 1
+    header(ws, r0, ["LATEST READINGS", "Value", "Comment"], fill=FILL_SUB, font=F_BOLD, height=18)
+    latest = [
+        ("Latest Indian trading date", f"=INDEX({md('Date')},{last})", "dd-mmm-yyyy", ""),
+        ("S&P 500 in the previous US session", f"=INDEX({md('US_SP500_Prev')},{last})", PCT, ""),
+        ("US 10-year yield (%)", f"=INDEX({md('US_10Y')},{last})", "0.00", "Above 4.5% has been tough for Nifty"),
+        ("US 10-year change over 20 days (bp)", f"=INDEX({md('US_10Y_20d_bps')},{last})", "0", "More than +50 bp = warning"),
+        ("US yield curve, 10Y minus 3M (%)", f"=INDEX({md('US_Curve')},{last})", "0.00", "Inversion has NOT hurt India"),
+        ("US VIX", f"=INDEX({md('US_VIX')},{last})", "0.0", "40+ marked global bottoms"),
+        ("US dollar index change over 20 days", f"=INDEX({md('DXY_20d')},{last})", PCT, "+3% or more = headwind"),
+        ("Gold change over 20 days (US$)", f"=INDEX({md('Gold_20d')},{last})", PCT, ""),
+        ("US PRESSURE score (0-100)", f"=INDEX({md('US_Pressure')},{last})", "0", "Above 50 = strong headwind for Indian shares"),
+    ]
+    for i, (label, f, fmt, cmt) in enumerate(latest):
+        r = r0 + 1 + i
+        ws.cell(r, 1, label).font = F_BOLD if "PRESSURE" in label else F_BASE
+        c = ws.cell(r, 2, f)
+        c.font, c.fill, c.border, c.number_format = F_BOLD, FILL_OUT, BOX, fmt
+        if cmt:
+            ws.cell(r, 3, cmt).font = F_NOTE
+    ws.conditional_formatting.add(f"B{r0 + len(latest)}", panic_scale())
+
+    row = r0 + len(latest) + 3
+
+    def table(title_, key, edges, outs, edge_fmt):
+        nonlocal row
+        ws.cell(row, 1, title_).font = F_BOLD
+        heads = ["From", "To", "Days"] + [h for h, *_ in outs]
+        header(ws, row + 1, heads, height=45)
+        for i, (lo, hi) in enumerate(edges):
+            r = row + 2 + i
+            for c, v in ((1, lo), (2, hi)):
+                cell = ws.cell(r, c, v)
+                cell.font, cell.fill, cell.number_format, cell.border = F_INPUT, FILL_INPUT, edge_fmt, BOX
+            crit = f'{md(key)},">="&$A{r},{md(key)},"<"&$B{r}'
+            ws.cell(r, 3, f"=COUNTIFS({crit})")
+            for j, (h, okey, kind) in enumerate(outs):
+                if kind == "avg":
+                    f = f'=IFERROR(AVERAGEIFS({md(okey)},{crit}),"")'
+                else:
+                    f = f'=IFERROR(COUNTIFS({crit},{md(okey)},">0")/COUNTIFS({crit},{md(okey)},"<>"),"")'
+                ws.cell(r, 4 + j, f)
+        end = row + 1 + len(edges)
+        style_range(ws, f"C{row + 2}:{L(3 + len(outs))}{end}", PCT)
+        style_range(ws, f"C{row + 2}:C{end}", NUM0)
+        avg_cols = [L(4 + j) for j, (_h, _k, kind) in enumerate(outs) if kind == "avg"]
+        for col in avg_cols:
+            ws.conditional_formatting.add(f"{col}{row + 2}:{col}{end}", scale3())
+        row = end + 3
+
+    big = 100
+    table("A. Overnight: S&P 500 move in the last US session -> Nifty the next Indian day", "US_SP500_Prev",
+          [(-1, -0.03), (-0.03, -0.02), (-0.02, -0.01), (-0.01, 0), (0, 0.01), (0.01, 0.02), (0.02, 0.03), (0.03, 1)],
+          [("Nifty same day", "Nifty_Ret1", "avg"), ("% Nifty up that day", "Nifty_Ret1", "pos"),
+           ("Nifty next 20 days", "Nifty_Next20", "avg"), ("% higher after 20 days", "Nifty_Next20", "pos")], PCT)
+    table("B. US 10-year yield change over 20 days (bp) -> Nifty", "US_10Y_20d_bps",
+          [(-500, -50), (-50, -25), (-25, 0), (0, 25), (25, 50), (50, 500)],
+          [("Nifty same 20 days", "Return20", "avg"), ("Nifty next 20 days", "Nifty_Next20", "avg"),
+           ("% higher after 20 days", "Nifty_Next20", "pos"), ("Nifty next 1 year", "Nifty_Next250", "avg")], "0")
+    table("C. US 10-year yield LEVEL (%) -> Nifty", "US_10Y",
+          [(0, 2), (2, 3), (3, 4), (4, 4.5), (4.5, 5), (5, 10)],
+          [("Nifty next 60 days", "Nifty_Next60", "avg"), ("Nifty next 1 year", "Nifty_Next250", "avg"),
+           ("% higher after 1 year", "Nifty_Next250", "pos")], "0.0")
+    table("D. US yield curve (10Y minus 3M, %) -> Nifty", "US_Curve",
+          [(-10, -0.5), (-0.5, 0), (0, 1), (1, 2), (2, 10)],
+          [("Nifty next 1 year", "Nifty_Next250", "avg"), ("% higher after 1 year", "Nifty_Next250", "pos")], "0.0")
+    table("E. US VIX level -> Nifty", "US_VIX",
+          [(0, 15), (15, 20), (20, 25), (25, 30), (30, 40), (40, big)],
+          [("Nifty same day", "Nifty_Ret1", "avg"), ("Nifty next 20 days", "Nifty_Next20", "avg"),
+           ("Nifty next 1 year", "Nifty_Next250", "avg"), ("% higher after 1 year", "Nifty_Next250", "pos")], "0")
+    table("F. US dollar index change over 20 days -> Nifty", "DXY_20d",
+          [(-1, -0.03), (-0.03, -0.01), (-0.01, 0.01), (0.01, 0.03), (0.03, 1)],
+          [("Nifty same 20 days", "Return20", "avg"), ("% higher same 20 days", "Return20", "pos"),
+           ("Nifty next 20 days", "Nifty_Next20", "avg")], PCT)
+    table("G. Gold vs Nifty: gold's 20-day change when Nifty fell or rose (US$ gold)", "Return20",
+          [(-1, -0.10), (-0.10, -0.05), (-0.05, 0), (0, 0.05), (0.05, 1)],
+          [("Gold same 20 days", "Gold_20d", "avg"), ("% gold up", "Gold_20d", "pos")], PCT)
+    table("H. US PRESSURE gauge zones -> Nifty", "US_Pressure",
+          [(0, 20), (20, 40), (40, 60), (60, 101)],
+          [("Nifty same 20 days", "Return20", "avg"), ("Nifty next 20 days", "Nifty_Next20", "avg"),
+           ("% higher after 20 days", "Nifty_Next20", "pos"), ("Nifty next 1 year", "Nifty_Next250", "avg")], "0")
+
+    ws.cell(row, 1, "I. Weekly correlation of Nifty with the S&P 500, by year (1 = move together, 0 = no link)").font = F_BOLD
+    header(ws, row + 1, ["Year", "Correlation"], height=20)
+    for i, x in enumerate(corr.itertuples(index=False)):
+        r = row + 2 + i
+        ws.cell(r, 1, int(x.Year)).border = BOX
+        c = ws.cell(r, 2, round(float(x.Weekly_Correlation), 3))
+        c.border, c.number_format = BOX, "0.00"
+    end = row + 1 + len(corr)
+    ws.conditional_formatting.add(f"B{row + 2}:B{end}", ColorScaleRule(start_type="min", start_color="FFFFFF",
+                                                                       end_type="max", end_color="5B9BD5"))
+    ws.cell(end + 1, 1, "Values calculated by analyze.py from weekly closes.").font = F_NOTE
+    widths(ws, {"A": 44, "B": 14, "C": 14, "D": 14})
+    for col in "EFGH":
+        ws.column_dimensions[col].width = 13
+
+
 # ---------------------------------------------------------------- analyst forecasts
 STUDIES = [
     ("Can stock market forecasters forecast?", "Alfred Cowles III (1933), Econometrica",
@@ -1445,6 +1577,8 @@ def build_howto(wb, n_events, n_stocks, first, last):
                            "duration, recovery, panic peak, buy-early vs wait results, and WHERE ARE WE NOW."),
         ("Crisis_Scorecard, Crisis_Sectors", "How each stock and industry behaved in crises; defenders and "
                                              "recovery leaders are also on Top_Lists."),
+        ("US_Link", "How the S&P 500, US bond yields, the US yield curve, US VIX, the dollar and gold move Nifty; "
+                    "US Pressure gauge (0-100) as an early-warning light."),
         ("Global_Recovery", "11 world markets plus India: fall, recovery time and rebound in every crisis; which never recovered."),
         ("Strategy_Shifts", "Sector rotation measured in each crisis, and documented fund-manager strategy changes."),
         ("Forecast_Studies", "Famous research on how accurate expert and analyst predictions are."),
@@ -1527,6 +1661,7 @@ def main():
     gc = pd.read_csv(DATA / "global_crises.csv")
     build_global(wb, gc, list(cp["Crisis"]))
     build_strategy(wb, list(cp["Crisis"]))
+    build_us_link(wb, mdc, last_md, pd.read_csv(DATA / "us_correlation.csv"))
     build_studies(wb)
     build_tracker(wb, mdc, last_md)
 
@@ -1541,7 +1676,7 @@ def main():
 
     order_sheets = ["How_To_Use", "Settings", "Target_Adjuster", "Panic_Meter", "Category_Summary",
                     "Crisis_Periods", "Top_Lists", "Stock_Scorecard", "Crisis_Scorecard", "Sector_Impact",
-                    "Crisis_Sectors", "Global_Recovery", "Strategy_Shifts", "Crude_Ranges", "FII_DII", "Forecast_Studies",
+                    "Crisis_Sectors", "Global_Recovery", "Strategy_Shifts", "US_Link", "Crude_Ranges", "FII_DII", "Forecast_Studies",
                     "Forecast_Tracker",
                     "Event_Calendar", "Nifty_Impact", "Stock_Event_Data", "Crisis_Stock_Data", "Global_Crisis_Data", "Market_Daily"]
     wb._sheets = [wb[n] for n in order_sheets]
