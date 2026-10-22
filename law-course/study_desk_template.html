@@ -1,0 +1,560 @@
+<title>Law Study Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap">
+<style>
+/* Layout: a reading desk. Class list on the left, one reading column, highlighter-yellow notes. */
+:root {
+  --bg: #F4F6F9;
+  --surface: #FFFFFF;
+  --ink: #18222F;
+  --muted: #5B6676;
+  --line: #DCE1E8;
+  --accent: #1F3A5F;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E6EDF6;
+  --mark: #FFE58A;
+  --mark-ink: #3F3200;
+  --callout: #FFF8DF;
+  --danger: #B3261E;
+  --font-read: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F141B; --surface: #161D27; --ink: #E6EBF2; --muted: #9AA6B5; --line: #2A3442;
+    --accent: #8FB3E0; --accent-ink: #0F141B; --accent-soft: #1C2A3B;
+    --mark: #6B5A12; --mark-ink: #FFF1B8; --callout: #2A2614; --danger: #FF8A80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F141B; --surface: #161D27; --ink: #E6EBF2; --muted: #9AA6B5; --line: #2A3442;
+  --accent: #8FB3E0; --accent-ink: #0F141B; --accent-soft: #1C2A3B;
+  --mark: #6B5A12; --mark-ink: #FFF1B8; --callout: #2A2614; --danger: #FF8A80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+select { max-width: 100%; min-width: 0; }
+.compose > *, .compose .row > * { min-width: 0; }
+.filters select { flex: 1 1 180px; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 10px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.brand { font-family: var(--font-read); font-weight: 700; font-size: 1.15rem; color: var(--accent); margin-right: auto; }
+.tabs { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+.tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 6px; font-weight: 500; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.count { font-variant-numeric: tabular-nums; }
+
+.wrap { padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 20px 120px; max-width: 1180px; margin: 0 auto; }
+.read-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 32px; align-items: start; }
+nav.classes { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: flex; flex-direction: column; gap: 2px; }
+nav.classes .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 10px 10px 4px; }
+nav.classes button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; color: var(--ink); line-height: 1.3; }
+nav.classes button:hover { background: var(--accent-soft); }
+nav.classes button[aria-current="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.class-select { display: none; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin-bottom: 14px; }
+.hint { font-size: 0.85rem; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; margin-bottom: 18px; }
+.hint b { color: var(--ink); }
+
+article.lesson { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 28px 32px; min-width: 0; font-family: var(--font-read); font-size: 1.03rem; line-height: 1.62; }
+article.lesson h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 6px; color: var(--accent); text-wrap: balance; }
+article.lesson .sub { font-style: italic; color: var(--muted); margin: 0 0 18px; font-size: 0.95rem; }
+article.lesson h2 { font-size: 1.28rem; margin: 30px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); color: var(--accent); text-wrap: balance; scroll-margin-top: 90px; }
+article.lesson h3 { font-size: 1.08rem; margin: 20px 0 6px; text-wrap: balance; scroll-margin-top: 90px; }
+article.lesson p { margin: 0 0 10px; max-width: 70ch; }
+article.lesson ul, article.lesson ol { margin: 0 0 12px; padding-left: 1.4em; max-width: 70ch; }
+article.lesson li { margin: 3px 0; }
+article.lesson li.sub2 { margin-left: 1.4em; list-style: circle; }
+article.lesson .callout { background: var(--callout); border-left: 4px solid #B8860B; border-radius: 6px; padding: 10px 14px; margin: 10px 0 14px; }
+.table-wrap { overflow-x: auto; margin: 6px 0 16px; border: 1px solid var(--line); border-radius: 8px; }
+article.lesson table { border-collapse: collapse; width: 100%; font-family: var(--font-ui); font-size: 0.86rem; line-height: 1.4; }
+article.lesson th { background: var(--accent); color: var(--accent-ink); text-align: left; font-weight: 600; padding: 7px 10px; }
+article.lesson td { padding: 7px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+article.lesson tr:nth-child(even) td { background: var(--accent-soft); }
+article.lesson ::selection { background: var(--mark); color: var(--mark-ink); }
+article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
+
+/* Selection bar */
+.selbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  padding-block: 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 18px rgba(0,0,0,0.08);
+}
+.selbar .inner { max-width: 1180px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.selbar .preview { flex: 1 1 260px; min-width: 0; font-family: var(--font-read); font-size: 0.92rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.selbar .preview mark { background: var(--mark); color: var(--mark-ink); padding: 0 3px; border-radius: 3px; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 8px; font-weight: 500; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.mark { background: var(--mark); color: var(--mark-ink); border-color: transparent; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.small { padding: 4px 10px; font-size: 0.84rem; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* Notes view */
+.notes-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+.notes-head h1 { font-family: var(--font-read); font-size: 1.5rem; margin: 0 auto 0 0; color: var(--accent); }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+.filters input[type="search"], .filters select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.filters input[type="search"] { flex: 1 1 220px; min-width: 0; }
+.filters label { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; color: var(--muted); }
+.store-status { font-size: 0.8rem; color: var(--muted); }
+.group { margin-bottom: 26px; }
+.group h2 { font-family: var(--font-read); font-size: 1.1rem; margin: 0 0 10px; display: flex; gap: 8px; align-items: baseline; }
+.group h2 .n { font-family: var(--font-ui); font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+.cards { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.card.important { border-left: 4px solid #B8860B; }
+.card .quote { font-family: var(--font-read); font-size: 1rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.card .quote mark { background: var(--mark); color: var(--mark-ink); padding: 0 2px; border-radius: 2px; }
+.card .own { margin-top: 10px; padding: 8px 12px; background: var(--accent-soft); border-radius: 6px; font-size: 0.92rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.card .own b { color: var(--accent); }
+.card .meta { margin-top: 10px; font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.card .actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.card textarea, .compose textarea { width: 100%; min-height: 80px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); resize: vertical; }
+.compose { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; display: grid; gap: 10px; }
+.compose .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.compose select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 28px 20px; text-align: center; color: var(--muted); }
+.empty b { color: var(--ink); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; }
+
+@media (max-width: 860px) {
+  .read-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.classes { display: none; }
+  .class-select { display: block; }
+  article.lesson { padding: 20px 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast { transition: opacity 0.2s; }
+}
+</style>
+
+<header class="top">
+  <div class="brand">Law Study Desk</div>
+  <div class="tabs" role="tablist">
+    <button id="tab-read" role="tab" aria-selected="true">Classes</button>
+    <button id="tab-notes" role="tab" aria-selected="false">My Notes <span class="count" id="note-count">(0)</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="view-read">
+    <div class="read-layout">
+      <nav class="classes" id="class-nav" aria-label="Classes"></nav>
+      <div style="min-width:0">
+        <select class="class-select" id="class-select" aria-label="Choose a class"></select>
+        <div class="hint"><b>To save a note:</b> select any text in the lesson, then tap <b>Add to notes</b> at the bottom of the screen.</div>
+        <article class="lesson" id="lesson"></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-notes" hidden>
+    <div class="notes-head">
+      <h1>My Notes</h1>
+      <span class="store-status" id="store-status">Connecting…</span>
+      <button class="btn primary" id="btn-compose">Write a note</button>
+    </div>
+    <form class="compose" id="compose" hidden>
+      <label for="compose-text"><b>Your note</b></label>
+      <textarea id="compose-text" placeholder="e.g. Remember: written statement in a commercial suit = 120 days, no extension (O.8 R.1 proviso)."></textarea>
+      <div class="row">
+        <label for="compose-class">Class</label>
+        <select id="compose-class"></select>
+        <label><input type="checkbox" id="compose-important"> Important</label>
+        <span style="margin-left:auto"></span>
+        <button type="button" class="btn" id="compose-cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save note</button>
+      </div>
+    </form>
+    <div class="filters">
+      <input type="search" id="search" placeholder="Search your notes (e.g. bail, S.138, decree)" aria-label="Search notes">
+      <select id="filter-class" aria-label="Filter by class"></select>
+      <label><input type="checkbox" id="filter-important"> Important only</label>
+    </div>
+    <div id="notes-list"></div>
+  </section>
+</main>
+
+<div class="selbar" id="selbar" hidden>
+  <div class="inner">
+    <div class="preview" id="sel-preview"></div>
+    <button class="btn" id="sel-cancel">Cancel</button>
+    <button class="btn mark" id="sel-important">Add as important</button>
+    <button class="btn primary" id="sel-add">Add to notes</button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="classes-data">/*__CLASSES__*/</script>
+<script>
+(function () {
+  const CLASSES = JSON.parse(document.getElementById("classes-data").textContent);
+  const byId = Object.fromEntries(CLASSES.map(c => [c.id, c]));
+  const $ = id => document.getElementById(id);
+
+  // ---------- Markdown (the same small subset the PDF builder uses) ----------
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function inline(s) {
+    s = esc(s);
+    s = s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    s = s.replace(/(^|[^\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])/g, "$1<i>$2</i>");
+    return s;
+  }
+  function slug(s) { return s.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60); }
+  function plain(s) { return s.replace(/\*\*/g, "").replace(/\*/g, ""); }
+
+  function renderLesson(cls) {
+    const lines = cls.md.split("\n");
+    const out = [];
+    let h2 = "", h3 = "", list = null;
+    const section = () => esc(h3 ? (h2 ? h2 + " › " + h3 : h3) : h2);
+    const closeList = () => { if (list) { out.push("</" + list + ">"); list = null; } };
+    const openList = t => { if (list !== t) { closeList(); out.push("<" + t + ' data-section="' + section() + '">'); list = t; } };
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].replace(/\s+$/, "");
+      if (!line.trim() || line.trim() === "===") { closeList(); continue; }
+      if (line.startsWith("# ")) {
+        closeList();
+        out.push('<h1 data-section="">' + inline(line.slice(2)) + "</h1>");
+        const nx = lines[i + 1] || "";
+        if (nx.startsWith("_") && nx.trim().endsWith("_")) { out.push('<p class="sub" data-section="">' + inline(nx.trim().slice(1, -1)) + "</p>"); i++; }
+      } else if (line.startsWith("## ")) {
+        closeList(); h2 = plain(line.slice(3)); h3 = "";
+        out.push('<h2 id="' + cls.id + "--" + slug(h2) + '" data-section="' + section() + '">' + inline(line.slice(3)) + "</h2>");
+      } else if (line.startsWith("### ")) {
+        closeList(); h3 = plain(line.slice(4));
+        out.push('<h3 id="' + cls.id + "--" + slug(h2 + "-" + h3) + '" data-section="' + section() + '">' + inline(line.slice(4)) + "</h3>");
+      } else if (line.startsWith("|")) {
+        closeList();
+        const rows = [];
+        while (i < lines.length && lines[i].startsWith("|")) { rows.push(lines[i]); i++; }
+        i--;
+        const cells = rows.filter(r => !/^\|?[\s:|-]+\|?$/.test(r.trim()))
+          .map(r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
+        let t = '<div class="table-wrap"><table data-section="' + section() + '">';
+        cells.forEach((r, ri) => {
+          const tag = ri === 0 ? "th" : "td";
+          t += "<tr>" + r.map(c => "<" + tag + ">" + inline(c) + "</" + tag + ">").join("") + "</tr>";
+        });
+        out.push(t + "</table></div>");
+      } else if (line.startsWith(">")) {
+        closeList();
+        const parts = [];
+        while (i < lines.length && lines[i].startsWith(">")) { parts.push(inline(lines[i].replace(/^>\s?/, ""))); i++; }
+        i--;
+        out.push('<div class="callout" data-section="' + section() + '">' + parts.join("<br>") + "</div>");
+      } else if (line.startsWith("  - ")) {
+        if (!list) openList("ul");
+        out.push('<li class="sub2">' + inline(line.slice(4)) + "</li>");
+      } else if (line.startsWith("- ")) {
+        openList("ul"); out.push("<li>" + inline(line.slice(2)) + "</li>");
+      } else if (/^\d+\. /.test(line)) {
+        openList("ol"); out.push("<li>" + inline(line.replace(/^\d+\. /, "")) + "</li>");
+      } else {
+        closeList(); out.push('<p data-section="' + section() + '">' + inline(line) + "</p>");
+      }
+    }
+    closeList();
+    return out.join("\n");
+  }
+
+  // ---------- Storage: private per-person db, or this browser as a fallback ----------
+  let notes = [];
+  let store = null; // { kind: "db" | "local", add, update, remove }
+  const LS_KEY = "law-study-desk-notes";
+
+  function lsRead() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (e) { return []; } }
+  function lsWrite(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
+
+  function useLocal(reason) {
+    notes = lsRead();
+    store = {
+      kind: "local",
+      async add(n) { n.id = "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); notes.unshift(n); if (!lsWrite(notes)) throw new Error("This browser blocked saving."); renderAll(); },
+      async update(id, patch) { notes = notes.map(n => n.id === id ? Object.assign({}, n, patch) : n); lsWrite(notes); renderAll(); },
+      async remove(id) { notes = notes.filter(n => n.id !== id); lsWrite(notes); renderAll(); },
+    };
+    $("store-status").textContent = reason || "Saved in this browser only";
+    renderAll();
+  }
+
+  async function connect() {
+    const claude = window.claude;
+    if (!claude || !claude.use) { useLocal("Saved in this browser only"); return; }
+    try {
+      const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+      const uid = user ? await user.id() : null;
+      if (!db || !uid) { useLocal("Sign in to keep notes in your account. For now they are saved in this browser only."); return; }
+      const col = db.doc("data/users/" + uid + "/profile").collection("notes");
+      store = {
+        kind: "db",
+        async add(n) { await col.doc().set(n); },
+        async update(id, patch) { await col.doc(id).update(patch); },
+        async remove(id) { await col.doc(id).delete(); },
+      };
+      $("store-status").textContent = "Saved privately to your account";
+      col.orderBy("createdAt", "desc").limit(1000).onSnapshot(snap => {
+        notes = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderAll();
+      }, () => useLocal("Your account storage is unavailable right now. Notes are saved in this browser only."));
+    } catch (e) {
+      useLocal("Saved in this browser only");
+    }
+  }
+
+  // ---------- Classes view ----------
+  let currentClass = CLASSES[0].id;
+  function buildClassPickers() {
+    const nav = $("class-nav"), sel = $("class-select"), fc = $("filter-class"), cc = $("compose-class");
+    let lastGroup = null;
+    nav.innerHTML = ""; sel.innerHTML = "";
+    CLASSES.forEach(c => {
+      if (c.group !== lastGroup) {
+        const l = document.createElement("div"); l.className = "label"; l.textContent = c.group; nav.appendChild(l);
+        lastGroup = c.group;
+      }
+      const b = document.createElement("button");
+      b.textContent = c.short; b.dataset.id = c.id;
+      b.addEventListener("click", () => openClass(c.id));
+      nav.appendChild(b);
+      sel.add(new Option(c.short, c.id));
+    });
+    sel.addEventListener("change", () => openClass(sel.value));
+    fc.add(new Option("All classes", ""));
+    CLASSES.forEach(c => { fc.add(new Option(c.short, c.id)); cc.add(new Option(c.short, c.id)); });
+    cc.add(new Option("General (no class)", "general"));
+  }
+
+  function openClass(id, anchor) {
+    currentClass = id;
+    $("lesson").innerHTML = renderLesson(byId[id]);
+    document.querySelectorAll("#class-nav button").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
+    $("class-select").value = id;
+    markNotedSections();
+    showView("read");
+    if (anchor) {
+      const el = document.getElementById(anchor);
+      if (el) { el.scrollIntoView({ block: "start" }); return; }
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function markNotedSections() {
+    const noted = new Set(notes.filter(n => n.classId === currentClass).map(n => n.section));
+    document.querySelectorAll("#lesson [data-section]").forEach(el => {
+      el.classList.toggle("has-note", noted.has(el.dataset.section) && el.dataset.section !== "" && !/^H[123]$/.test(el.tagName));
+    });
+  }
+
+  // ---------- Selecting text ----------
+  let pending = null;
+  document.addEventListener("selectionchange", () => {
+    const s = window.getSelection();
+    const text = s && s.rangeCount ? s.toString().trim() : "";
+    if (!text) { return; }
+    const node = s.anchorNode && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentElement);
+    if (!node || !$("lesson").contains(node)) return;
+    const blk = node.closest("[data-section]");
+    pending = { text: text.slice(0, 4000), classId: currentClass, section: blk ? blk.dataset.section : "" };
+    const pv = $("sel-preview"); pv.textContent = "";
+    const m = document.createElement("mark"); m.textContent = text.length > 90 ? text.slice(0, 90) + "…" : text;
+    pv.append("Selected: ", m);
+    $("selbar").hidden = false;
+  });
+  ["sel-add", "sel-important", "sel-cancel"].forEach(id => $(id).addEventListener("pointerdown", e => e.preventDefault()));
+  $("sel-cancel").addEventListener("click", clearSelection);
+  $("sel-add").addEventListener("click", () => saveSelection(false));
+  $("sel-important").addEventListener("click", () => saveSelection(true));
+
+  function clearSelection() {
+    pending = null; $("selbar").hidden = true;
+    try { window.getSelection().removeAllRanges(); } catch (e) {}
+  }
+  async function saveSelection(important) {
+    if (!pending) return;
+    if (!store) { toast("Still connecting. Try again in a moment."); return; }
+    const c = byId[pending.classId];
+    const note = { text: pending.text, classId: c.id, classTitle: c.short, section: pending.section, comment: "", important: !!important, createdAt: Date.now() };
+    $("sel-add").disabled = $("sel-important").disabled = true;
+    try { await store.add(note); toast(important ? "Added to notes as important" : "Added to notes"); clearSelection(); }
+    catch (e) { toast(saveError(e)); }
+    finally { $("sel-add").disabled = $("sel-important").disabled = false; }
+  }
+  function saveError(e) {
+    if (e && e.code === "quota_exceeded") return "Your notes storage is full. Delete some old notes, then try again.";
+    return "Could not save the note. Check your connection and try again.";
+  }
+
+  // ---------- Notes view ----------
+  function renderAll() {
+    $("note-count").textContent = "(" + notes.length + ")";
+    renderNotes();
+    if (!$("view-read").hidden) markNotedSections();
+  }
+
+  function highlight(text, q) {
+    const frag = document.createDocumentFragment();
+    if (!q) { frag.append(text); return frag; }
+    const lower = text.toLowerCase(), ql = q.toLowerCase();
+    let i = 0, j;
+    while ((j = lower.indexOf(ql, i)) !== -1) {
+      frag.append(text.slice(i, j));
+      const m = document.createElement("mark"); m.textContent = text.slice(j, j + q.length); frag.append(m);
+      i = j + q.length;
+    }
+    frag.append(text.slice(i));
+    return frag;
+  }
+
+  function renderNotes() {
+    const list = $("notes-list");
+    const q = $("search").value.trim();
+    const fc = $("filter-class").value;
+    const imp = $("filter-important").checked;
+    const shown = notes.filter(n =>
+      (!fc || n.classId === fc) && (!imp || n.important) &&
+      (!q || (n.text + " " + (n.comment || "") + " " + (n.section || "")).toLowerCase().includes(q.toLowerCase())));
+    list.innerHTML = "";
+    if (!notes.length) {
+      list.innerHTML = '<div class="empty"><b>No notes yet.</b><br>Open a class, select any text, and tap <b>Add to notes</b>. You can also tap <b>Write a note</b> above to type your own.</div>';
+      return;
+    }
+    if (!shown.length) {
+      list.innerHTML = '<div class="empty">No notes match your search or filters.</div>';
+      return;
+    }
+    const order = CLASSES.map(c => c.id).concat(["general"]);
+    const groups = {};
+    shown.forEach(n => { (groups[n.classId] = groups[n.classId] || []).push(n); });
+    Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(cid => {
+      const g = document.createElement("div"); g.className = "group";
+      const h = document.createElement("h2");
+      h.textContent = cid === "general" ? "General notes" : (byId[cid] ? byId[cid].short : groups[cid][0].classTitle || "Other");
+      const n = document.createElement("span"); n.className = "n"; n.textContent = groups[cid].length + (groups[cid].length === 1 ? " note" : " notes");
+      h.append(" ", n);
+      const cards = document.createElement("div"); cards.className = "cards";
+      groups[cid].forEach(note => cards.appendChild(card(note, q)));
+      g.append(h, cards);
+      list.appendChild(g);
+    });
+  }
+
+  function card(n, q) {
+    const el = document.createElement("div"); el.className = "card" + (n.important ? " important" : "");
+    const quote = document.createElement("div"); quote.className = "quote"; quote.appendChild(highlight(n.text, q));
+    el.appendChild(quote);
+    if (n.comment) {
+      const own = document.createElement("div"); own.className = "own";
+      const b = document.createElement("b"); b.textContent = "My comment: ";
+      own.append(b, highlight(n.comment, q));
+      el.appendChild(own);
+    }
+    const meta = document.createElement("div"); meta.className = "meta";
+    const parts = [n.important ? "★ Important" : "", n.section || "", new Date(n.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })].filter(Boolean);
+    parts.forEach(p => { const s = document.createElement("span"); s.textContent = p; meta.appendChild(s); });
+    el.appendChild(meta);
+
+    const actions = document.createElement("div"); actions.className = "actions";
+    const mk = (label, cls, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn small " + (cls || ""); b.textContent = label; b.addEventListener("click", fn); actions.appendChild(b); return b; };
+    mk(n.important ? "Unmark important" : "Mark important", "", () => store.update(n.id, { important: !n.important }).catch(e => toast(saveError(e))));
+    mk(n.comment ? "Edit comment" : "Add comment", "", () => editComment(el, n));
+    if (byId[n.classId]) {
+      mk("Open in class", "", () => {
+        const h2 = (n.section || "").split(" › ");
+        const anchor = n.classId + "--" + (h2.length > 1 ? slug(h2[0] + "-" + h2[1]) : slug(h2[0] || ""));
+        openClass(n.classId, anchor);
+      });
+    }
+    const del = mk("Delete", "danger", () => {
+      actions.innerHTML = "";
+      const s = document.createElement("span"); s.textContent = "Delete this note?"; s.style.alignSelf = "center"; s.style.fontSize = "0.88rem";
+      actions.appendChild(s);
+      mk("Yes, delete", "danger", () => store.remove(n.id).then(() => toast("Note deleted")).catch(e => toast(saveError(e))));
+      mk("Keep", "", () => renderNotes());
+    });
+    el.appendChild(actions);
+    return el;
+  }
+
+  function editComment(el, n) {
+    const box = document.createElement("div"); box.style.marginTop = "10px"; box.style.display = "grid"; box.style.gap = "8px";
+    const ta = document.createElement("textarea"); ta.id = "comment-" + n.id; ta.value = n.comment || "";
+    ta.placeholder = "Your own explanation, an example, or a memory trick";
+    const row = document.createElement("div"); row.style.display = "flex"; row.style.gap = "6px"; row.style.justifyContent = "flex-end";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn small"; cancel.textContent = "Cancel";
+    const save = document.createElement("button"); save.type = "button"; save.className = "btn small primary"; save.textContent = "Save comment";
+    cancel.addEventListener("click", () => renderNotes());
+    save.addEventListener("click", () => {
+      save.disabled = true;
+      store.update(n.id, { comment: ta.value.trim() }).then(() => toast("Comment saved")).catch(e => { save.disabled = false; toast(saveError(e)); });
+    });
+    row.append(cancel, save);
+    box.append(ta, row);
+    el.querySelector(".actions").replaceWith(box);
+    ta.focus();
+  }
+
+  $("search").addEventListener("input", renderNotes);
+  $("filter-class").addEventListener("change", renderNotes);
+  $("filter-important").addEventListener("change", renderNotes);
+
+  $("btn-compose").addEventListener("click", () => {
+    $("compose").hidden = false; $("compose-class").value = currentClass; $("compose-text").focus();
+  });
+  $("compose-cancel").addEventListener("click", () => { $("compose").hidden = true; $("compose-text").value = ""; });
+  $("compose").addEventListener("submit", async e => {
+    e.preventDefault();
+    const text = $("compose-text").value.trim();
+    if (!text) { toast("Type your note first."); return; }
+    if (!store) return;
+    const cid = $("compose-class").value;
+    try {
+      await store.add({ text, classId: cid, classTitle: cid === "general" ? "General" : byId[cid].short, section: "My own note", comment: "", important: $("compose-important").checked, createdAt: Date.now() });
+      $("compose-text").value = ""; $("compose-important").checked = false; $("compose").hidden = true;
+      toast("Note saved");
+    } catch (err) { toast(saveError(err)); }
+  });
+
+  // ---------- Tabs, toast ----------
+  function showView(v) {
+    $("view-read").hidden = v !== "read";
+    $("view-notes").hidden = v !== "notes";
+    $("tab-read").setAttribute("aria-selected", v === "read");
+    $("tab-notes").setAttribute("aria-selected", v === "notes");
+    if (v === "notes") { clearSelection(); renderNotes(); }
+  }
+  $("tab-read").addEventListener("click", () => showView("read"));
+  $("tab-notes").addEventListener("click", () => { showView("notes"); window.scrollTo(0, 0); });
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+  }
+
+  buildClassPickers();
+  let startClass = CLASSES[0].id;
+  try { const saved = localStorage.getItem("law-study-desk-class"); if (saved && byId[saved]) startClass = saved; } catch (e) {}
+  openClass(startClass);
+  const origOpen = openClass;
+  openClass = function (id, anchor) { try { localStorage.setItem("law-study-desk-class", id); } catch (e) {} origOpen(id, anchor); };
+  connect();
+})();
+</script>

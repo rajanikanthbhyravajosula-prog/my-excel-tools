@@ -1,0 +1,560 @@
+<title>Law Study Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap">
+<style>
+/* Layout: a reading desk. Class list on the left, one reading column, highlighter-yellow notes. */
+:root {
+  --bg: #F4F6F9;
+  --surface: #FFFFFF;
+  --ink: #18222F;
+  --muted: #5B6676;
+  --line: #DCE1E8;
+  --accent: #1F3A5F;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E6EDF6;
+  --mark: #FFE58A;
+  --mark-ink: #3F3200;
+  --callout: #FFF8DF;
+  --danger: #B3261E;
+  --font-read: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F141B; --surface: #161D27; --ink: #E6EBF2; --muted: #9AA6B5; --line: #2A3442;
+    --accent: #8FB3E0; --accent-ink: #0F141B; --accent-soft: #1C2A3B;
+    --mark: #6B5A12; --mark-ink: #FFF1B8; --callout: #2A2614; --danger: #FF8A80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F141B; --surface: #161D27; --ink: #E6EBF2; --muted: #9AA6B5; --line: #2A3442;
+  --accent: #8FB3E0; --accent-ink: #0F141B; --accent-soft: #1C2A3B;
+  --mark: #6B5A12; --mark-ink: #FFF1B8; --callout: #2A2614; --danger: #FF8A80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+select { max-width: 100%; min-width: 0; }
+.compose > *, .compose .row > * { min-width: 0; }
+.filters select { flex: 1 1 180px; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 10px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.brand { font-family: var(--font-read); font-weight: 700; font-size: 1.15rem; color: var(--accent); margin-right: auto; }
+.tabs { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+.tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 6px; font-weight: 500; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.count { font-variant-numeric: tabular-nums; }
+
+.wrap { padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 20px 120px; max-width: 1180px; margin: 0 auto; }
+.read-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 32px; align-items: start; }
+nav.classes { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: flex; flex-direction: column; gap: 2px; }
+nav.classes .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 10px 10px 4px; }
+nav.classes button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; color: var(--ink); line-height: 1.3; }
+nav.classes button:hover { background: var(--accent-soft); }
+nav.classes button[aria-current="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.class-select { display: none; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin-bottom: 14px; }
+.hint { font-size: 0.85rem; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; margin-bottom: 18px; }
+.hint b { color: var(--ink); }
+
+article.lesson { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 28px 32px; min-width: 0; font-family: var(--font-read); font-size: 1.03rem; line-height: 1.62; }
+article.lesson h1 { font-size: 1.7rem; line-height: 1.2; margin: 0 0 6px; color: var(--accent); text-wrap: balance; }
+article.lesson .sub { font-style: italic; color: var(--muted); margin: 0 0 18px; font-size: 0.95rem; }
+article.lesson h2 { font-size: 1.28rem; margin: 30px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); color: var(--accent); text-wrap: balance; scroll-margin-top: 90px; }
+article.lesson h3 { font-size: 1.08rem; margin: 20px 0 6px; text-wrap: balance; scroll-margin-top: 90px; }
+article.lesson p { margin: 0 0 10px; max-width: 70ch; }
+article.lesson ul, article.lesson ol { margin: 0 0 12px; padding-left: 1.4em; max-width: 70ch; }
+article.lesson li { margin: 3px 0; }
+article.lesson li.sub2 { margin-left: 1.4em; list-style: circle; }
+article.lesson .callout { background: var(--callout); border-left: 4px solid #B8860B; border-radius: 6px; padding: 10px 14px; margin: 10px 0 14px; }
+.table-wrap { overflow-x: auto; margin: 6px 0 16px; border: 1px solid var(--line); border-radius: 8px; }
+article.lesson table { border-collapse: collapse; width: 100%; font-family: var(--font-ui); font-size: 0.86rem; line-height: 1.4; }
+article.lesson th { background: var(--accent); color: var(--accent-ink); text-align: left; font-weight: 600; padding: 7px 10px; }
+article.lesson td { padding: 7px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+article.lesson tr:nth-child(even) td { background: var(--accent-soft); }
+article.lesson ::selection { background: var(--mark); color: var(--mark-ink); }
+article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
+
+/* Selection bar */
+.selbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  padding-block: 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 18px rgba(0,0,0,0.08);
+}
+.selbar .inner { max-width: 1180px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.selbar .preview { flex: 1 1 260px; min-width: 0; font-family: var(--font-read); font-size: 0.92rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.selbar .preview mark { background: var(--mark); color: var(--mark-ink); padding: 0 3px; border-radius: 3px; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 8px; font-weight: 500; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.mark { background: var(--mark); color: var(--mark-ink); border-color: transparent; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.small { padding: 4px 10px; font-size: 0.84rem; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* Notes view */
+.notes-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+.notes-head h1 { font-family: var(--font-read); font-size: 1.5rem; margin: 0 auto 0 0; color: var(--accent); }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+.filters input[type="search"], .filters select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.filters input[type="search"] { flex: 1 1 220px; min-width: 0; }
+.filters label { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; color: var(--muted); }
+.store-status { font-size: 0.8rem; color: var(--muted); }
+.group { margin-bottom: 26px; }
+.group h2 { font-family: var(--font-read); font-size: 1.1rem; margin: 0 0 10px; display: flex; gap: 8px; align-items: baseline; }
+.group h2 .n { font-family: var(--font-ui); font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+.cards { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.card.important { border-left: 4px solid #B8860B; }
+.card .quote { font-family: var(--font-read); font-size: 1rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.card .quote mark { background: var(--mark); color: var(--mark-ink); padding: 0 2px; border-radius: 2px; }
+.card .own { margin-top: 10px; padding: 8px 12px; background: var(--accent-soft); border-radius: 6px; font-size: 0.92rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.card .own b { color: var(--accent); }
+.card .meta { margin-top: 10px; font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.card .actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.card textarea, .compose textarea { width: 100%; min-height: 80px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); resize: vertical; }
+.compose { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; display: grid; gap: 10px; }
+.compose .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.compose select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 28px 20px; text-align: center; color: var(--muted); }
+.empty b { color: var(--ink); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; }
+
+@media (max-width: 860px) {
+  .read-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.classes { display: none; }
+  .class-select { display: block; }
+  article.lesson { padding: 20px 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast { transition: opacity 0.2s; }
+}
+</style>
+
+<header class="top">
+  <div class="brand">Law Study Desk</div>
+  <div class="tabs" role="tablist">
+    <button id="tab-read" role="tab" aria-selected="true">Classes</button>
+    <button id="tab-notes" role="tab" aria-selected="false">My Notes <span class="count" id="note-count">(0)</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="view-read">
+    <div class="read-layout">
+      <nav class="classes" id="class-nav" aria-label="Classes"></nav>
+      <div style="min-width:0">
+        <select class="class-select" id="class-select" aria-label="Choose a class"></select>
+        <div class="hint"><b>To save a note:</b> select any text in the lesson, then tap <b>Add to notes</b> at the bottom of the screen.</div>
+        <article class="lesson" id="lesson"></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-notes" hidden>
+    <div class="notes-head">
+      <h1>My Notes</h1>
+      <span class="store-status" id="store-status">Connecting…</span>
+      <button class="btn primary" id="btn-compose">Write a note</button>
+    </div>
+    <form class="compose" id="compose" hidden>
+      <label for="compose-text"><b>Your note</b></label>
+      <textarea id="compose-text" placeholder="e.g. Remember: written statement in a commercial suit = 120 days, no extension (O.8 R.1 proviso)."></textarea>
+      <div class="row">
+        <label for="compose-class">Class</label>
+        <select id="compose-class"></select>
+        <label><input type="checkbox" id="compose-important"> Important</label>
+        <span style="margin-left:auto"></span>
+        <button type="button" class="btn" id="compose-cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save note</button>
+      </div>
+    </form>
+    <div class="filters">
+      <input type="search" id="search" placeholder="Search your notes (e.g. bail, S.138, decree)" aria-label="Search notes">
+      <select id="filter-class" aria-label="Filter by class"></select>
+      <label><input type="checkbox" id="filter-important"> Important only</label>
+    </div>
+    <div id="notes-list"></div>
+  </section>
+</main>
+
+<div class="selbar" id="selbar" hidden>
+  <div class="inner">
+    <div class="preview" id="sel-preview"></div>
+    <button class="btn" id="sel-cancel">Cancel</button>
+    <button class="btn mark" id="sel-important">Add as important</button>
+    <button class="btn primary" id="sel-add">Add to notes</button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="classes-data">[{"id": "f1-introduction", "short": "Class F1: Introduction to Law and the Indian Legal System", "group": "Phase 0: Foundations", "md": "# Class F1: Introduction to Law and the Indian Legal System\n_Phase 0: Foundations  |  Law Refresher Course  |  Revised with section references_\n\n> **What you will learn today:** what law is, the types of law, where law comes from, how a law is made, how the courts are arranged, the everyday legal words, and how to read a bare Act and a case citation.\n> **How to read the references:** \"Art.\" = Article of the Constitution. \"S.\" = Section. \"O.7 R.11\" = Order 7 Rule 11 of the CPC. \"(old ...)\" = the section number in the law that was replaced, e.g. \"BNS S.303 (old IPC S.378)\".\n\n**Abbreviations used:** CPC = Code of Civil Procedure, 1908; GCA = General Clauses Act, 1897; BNS = Bharatiya Nyaya Sanhita, 2023; BNSS = Bharatiya Nagarik Suraksha Sanhita, 2023; BSA = Bharatiya Sakshya Adhiniyam, 2023; SRA = Specific Relief Act, 1963; NI Act = Negotiable Instruments Act, 1881; CPA = Consumer Protection Act, 2019.\n\n## 1. What Is Law?\nIn simple words, **law is a set of rules made or recognised by the State, which everyone must follow, and which the State enforces through courts and penalties.**\n\n### Where \"law\" is defined\n| Provision | What it says |\n|---|---|\n| **Constitution, Art. 13(3)(a)** | \"Law\" **includes** any Ordinance, order, bye-law, rule, regulation, notification, custom or usage having the force of law in India. |\n| **Constitution, Art. 13(3)(b)** | \"Laws in force\" includes laws passed before the Constitution and not repealed (that is why the Contract Act of 1872 still applies). |\n| **Constitution, Art. 13(1) and (2)** | Any law inconsistent with the **fundamental rights** is **void** to that extent. |\n\n### Two classic definitions (from jurisprudence, not from any Act)\n| Jurist | Definition | Key idea |\n|---|---|---|\n| **John Austin** | \"Law is the **command of the sovereign**, backed by a **sanction**.\" | Law = an order from the ruler + a punishment for disobeying |\n| **John Salmond** | \"Law is the body of principles **recognised and applied by the State in the administration of justice**.\" | Law = what the courts actually apply |\n\n### Law, morality and custom\n| | Law | Morality | Custom |\n|---|---|---|---|\n| Made by | The State | Society and conscience | Long practice of a community |\n| Enforced by | Courts, police, penalties | Shame, guilt | Social pressure |\n| Example | Not paying tax is punishable | Lying to a friend is wrong | Giving gifts at weddings |\n\n> **Custom as law:** a custom is recognised as law (Art. 13(3)(a)) only if it is **ancient, certain, reasonable and not against public policy**. These conditions are written into **S.3(a) of the Hindu Marriage Act, 1955**, which defines \"custom\" and \"usage\".\n\n## 2. Types (Classification) of Law\n### A. Civil law vs Criminal law\n| Point | Civil law | Criminal law |\n|---|---|---|\n| Purpose | Settle disputes; give a **remedy** | **Punish** wrongs against society |\n| How a case starts | A **plaint**: CPC **S.26** (\"every suit shall be instituted by the presentation of a plaint\") and **O.7** | An **FIR**: BNSS **S.173** (old CrPC S.154); or a **complaint** to a Magistrate: BNSS **S.2(1)(h)** (definition) and **S.223** (old CrPC S.200) |\n| Who starts it | The injured person (**plaintiff** or **petitioner**) | The **State** (police and the Public Prosecutor), or a **complainant** |\n| The other side | **Defendant** or **respondent** | **Accused** |\n| Case name | *Ramesh v. Suresh* | *State of Andhra Pradesh v. Suresh* |\n| Standard of proof | **Preponderance of probabilities** | **Beyond reasonable doubt** |\n| Burden of proof | BSA **S.104** (old Evidence Act S.101): whoever asserts a fact must prove it | Same section, plus the presumption of innocence |\n| Meaning of \"proved\" | BSA **S.2(1)(j)** (old Evidence Act S.3) | Same |\n| Result | **Decree**: CPC **S.2(2)**; plus a **judgment**: CPC **S.2(9)** | Conviction and sentence (BNS **S.4** lists the kinds of punishment, old IPC S.53), or acquittal |\n| Main laws | CPC, Contract Act, Transfer of Property Act | BNS, BNSS, BSA |\n\n> **Trick:** \"Civil = **compensation**; Criminal = **punishment**.\" Civil is about *my right*; criminal is about *society's peace*.\n\n### B. Substantive law vs Procedural law\n| Substantive law | Procedural law |\n|---|---|\n| Creates and defines **rights and duties** | Lays down the **method** to enforce those rights |\n| *What* the law is | *How* to go to court |\n| Contract Act (e.g. **S.2(h)** defines \"contract\"); BNS (e.g. **S.303** defines theft) | CPC, BNSS, Limitation Act |\n\n> **Trick:** substantive law is the **destination**; procedural law is the **road map**.\n\n### C. Other classifications\n| Type | Meaning | Example and section |\n|---|---|---|\n| **Public law** | Between the State and citizens | Constitution; BNS; tax laws |\n| **Private law** | Between private persons | Contract Act; Transfer of Property Act |\n| **Municipal (national) law** | Law within one country | All Indian Acts. Parliament's power: **Art. 245–246** and the **Seventh Schedule** |\n| **International law** | Between nations | Treaties. Parliament can make laws to implement them: **Art. 253** |\n| **Codified law** | Written in an Act | Contract Act, 1872 |\n| **Uncodified law** | Developed by courts | Most of the law of torts (negligence, nuisance) |\n| **Personal law** | Depends on religion | Hindu Marriage Act, 1955; Muslim Personal Law (Shariat) Application Act, 1937, **S.2** |\n\n## 3. Sources of Law in India\n| Source | Provision that gives it force |\n|---|---|\n| 1. **Constitution** (supreme) | **Art. 13** (laws against fundamental rights are void); **Art. 245** (extent of laws made by Parliament and States) |\n| 2. **Legislation** | **Art. 246** with the **Seventh Schedule**: List I Union, List II State, List III Concurrent. If a central and a state law on a Concurrent subject conflict, the central law generally prevails: **Art. 254** |\n| 3. **Delegated legislation** | Power given by the parent Act. Examples: **CPC S.122** (High Courts may amend the Orders); **SEBI Act S.30** (SEBI makes regulations). Included in \"law\" by **Art. 13(3)(a)** |\n| 4. **Judicial precedent** | **Art. 141**: law declared by the Supreme Court binds all courts. **Art. 144**: all authorities must act in aid of the Supreme Court. **Art. 227**: High Court's superintendence over courts in the State |\n| 5. **Custom** | **Art. 13(3)(a)**; **Hindu Marriage Act S.3(a)** |\n| 6. **Personal law and equity** | Shariat Act **S.2**; Hindu law statutes; \"justice, equity and good conscience\" where no law applies |\n\n### Precedent: words you must know\n- **Ratio decidendi:** the *reason for the decision*. This is the binding part under **Art. 141**.\n- **Obiter dicta:** \"things said by the way\". Only persuasive.\n- **Stare decisis:** \"stand by what has been decided\".\n\n> **Trick:** the **ratio** is the **root**, the **obiter** is the **ornament**.\n\n## 4. A Short History (milestones)\n| Year | Event |\n|---|---|\n| 1726 | Charter creating **Mayor's Courts** in Madras, Bombay and Calcutta |\n| 1774 | **Supreme Court at Calcutta**, under the Regulating Act, 1773 |\n| 1834 | First **Law Commission** under Lord **Macaulay** |\n| 1860–1882 | IPC (1860), Evidence Act (1872), Contract Act (1872), Transfer of Property Act (1882) |\n| 1861 | **Indian High Courts Act** |\n| 1908 | Present **CPC** |\n| 1937 | **Federal Court** of India |\n| 26 Jan 1950 | **Constitution** in force; **Supreme Court** established under **Art. 124**, begins 28 Jan 1950 |\n| 1 Jan 2019 | **High Court of Andhra Pradesh** at Amaravati |\n| 1 July 2024 | BNS, BNSS, BSA replace the IPC, CrPC and Evidence Act |\n\n## 5. The Three Organs of the State\n| Organ | Role | Constitutional provisions |\n|---|---|---|\n| **Legislature** | Makes laws | Parliament: **Art. 79**; State Legislatures: **Art. 168** |\n| **Executive** | Implements laws | President: **Art. 52–53**; Council of Ministers: **Art. 74**; Governor: **Art. 153–154** |\n| **Judiciary** | Interprets laws, decides disputes | Supreme Court: **Art. 124**; High Courts: **Art. 214**; subordinate courts: **Art. 233–237** |\n\n### How a central law is made\n| Step | Provision |\n|---|---|\n| 1. A **Bill** is introduced in either House | **Art. 107** |\n| A **Money Bill** (defined in **Art. 110**) can be introduced only in the Lok Sabha | **Art. 109** |\n| 2. Both Houses pass it (a deadlock can go to a **joint sitting**) | **Art. 107–108** |\n| 3. **President's assent** makes it an Act | **Art. 111** |\n| 4. Published in the **Official Gazette** | — |\n| 5. **Commencement:** on the date of assent, unless the Act says otherwise | **GCA S.5** |\n| State law: Governor's assent | **Art. 200** |\n| **Ordinance** when the legislature is not in session; lapses six weeks after reassembly unless approved | **Art. 123** (President), **Art. 213** (Governor) |\n| Effect of **repeal** of an Act on pending rights and cases | **GCA S.6** |\n\n> **Example:** the BNS received the President's assent in December 2023, but **S.1(2)** of the BNS said it would come into force on a date notified by the Central Government. That date was 1 July 2024.\n\n## 6. The Courts and Where Cases Go\n| Level | Civil side | Criminal side |\n|---|---|---|\n| Top | **Supreme Court** (Art. 124; appeals Art. 132–136) | Supreme Court |\n| State | **High Court** (Art. 214) | High Court |\n| District | **District Judge** (Art. 233) | **Sessions Judge** |\n| Middle | **Senior Civil Judge** | **Chief Judicial Magistrate** |\n| Base | **Junior Civil Judge** | **Judicial Magistrate First Class** |\n| Law that creates them | **AP Civil Courts Act, 1972** | **BNSS S.6** (classes of criminal courts; old CrPC S.6) |\n\n| Concept | Provision |\n|---|---|\n| Civil courts can try all civil suits unless barred | **CPC S.9** |\n| Pecuniary limits apply | **CPC S.6** |\n| Sue in the lowest competent court | **CPC S.15** |\n| Place of suing | **CPC S.16–20** |\n| Writs to the Supreme Court / High Court | **Art. 32** / **Art. 226** |\n| Consumer Commissions (District: claims up to ₹50 lakh) | **CPA S.28, S.34** |\n| Family Courts | **Family Courts Act, 1984, S.3 and S.7** |\n| Lok Adalats | **Legal Services Authorities Act, 1987, S.19** |\n\n## 7. Everyday Legal Words (Glossary with sections)\n| Term | Meaning | Defined in / governed by |\n|---|---|---|\n| **Suit** | A civil case | Not defined; instituted by plaint: **CPC S.26** |\n| **Plaint** | The document that starts a suit | **CPC O.7** (contents: **O.7 R.1**) |\n| **Written statement** | The defendant's reply | **CPC O.8 R.1** |\n| **Pleading** | Plaint or written statement | **CPC O.6 R.1** |\n| **Cause of action** | Facts giving the right to sue | Not defined; must be stated in the plaint: **CPC O.7 R.1(e)** |\n| **Prayer (relief)** | What you ask the court for | **CPC O.7 R.1(g)** and **O.7 R.7** |\n| **Cause title** | Heading with court and parties | **CPC O.7 R.1(a)–(d)** |\n| **Jurisdiction** | Court's power to hear a case | **CPC S.9, S.15–20**; **BNSS S.197** onwards (place of inquiry and trial; old CrPC S.177) |\n| **Vakalatnama** | Client's authority to the advocate | **CPC O.3 R.4** |\n| **Advocate** | A person enrolled under the Advocates Act | **Advocates Act, 1961, S.2(1)(a)** |\n| **Affidavit** | Sworn statement of facts | **GCA S.3(3)**; **CPC O.19** |\n| **Summons** (civil) | Order to appear | **CPC S.27** and **O.5** |\n| **Summons / Warrant** (criminal) | Order to appear / to arrest | **BNSS S.63** onwards (summons) and **S.72** onwards (warrants) (old CrPC S.61 and S.70) |\n| **Bail** | Release from custody on conditions | Defined: **BNSS S.2(1)(b)**; bailable: **S.478**; non-bailable: **S.480**; anticipatory: **S.482** (old CrPC S.436, 437, 438) |\n| **Complaint** | Allegation to a Magistrate | **BNSS S.2(1)(h)** (old CrPC S.2(d)) |\n| **FIR** | First information of a cognizable offence | **BNSS S.173** (old CrPC S.154) |\n| **Ex parte** | In the absence of the other party | **CPC O.9 R.6** and **R.13** |\n| **Injunction** | Order to do or not do something | Temporary: **CPC O.39**; **SRA S.37** (temporary), **S.38** (perpetual), **S.39** (mandatory) |\n| **Stay** | Temporary stop | Of a later suit: **CPC S.10**; of a decree pending appeal: **CPC O.41 R.5** |\n| **Adjournment** | Postponing a hearing | **CPC O.17 R.1** (maximum 3) |\n| **Judgment / Decree / Order** | Reasons / final result / other decisions | **CPC S.2(9) / S.2(2) / S.2(14)** |\n| **Appeal** | Challenge in a higher court | Civil: **CPC S.96** (first), **S.100** (second); criminal: **BNSS S.413** onwards (old CrPC S.372) |\n| **Person** | Includes a company or association | **GCA S.3(42)** |\n| **Immovable / movable property** | Land and things attached to it / everything else | **GCA S.3(26) / S.3(36)** |\n| **Bare Act** | Text of the Act alone | — |\n\n## 8. How to Read a Bare Act\nEvery Act follows a standard layout:\n1. **Long title and Preamble:** the purpose of the Act.\n2. **Section 1:** short title, extent and commencement. Example: **CPC S.1**; **BNS S.1**.\n3. **Section 2 (usually):** **definitions**. Always read these first. Example: **CPC S.2**; **Contract Act S.2**; **BNSS S.2**.\n4. **Main sections**, grouped into Chapters or Parts.\n5. **Schedules**. Example: the **CPC First Schedule** contains the 51 Orders (made amendable by High Courts under **S.122**).\n\n### Parts of a section\n| Part | How to spot it | Example |\n|---|---|---|\n| **Sub-section / clause** | S.2(1), (a), (b) | **CPC S.2(2)** defines \"decree\" |\n| **Proviso** | **\"Provided that…\"**: an exception or condition | **NI Act S.138 proviso (a)–(c)**: conditions before a cheque bounce becomes an offence |\n| **Explanation** | Clarifies the rule | **CPC S.11, Explanation IV**: constructive res judicata |\n| **Illustration** | A worked example | **Contract Act S.10–30** and the **BSA** have many |\n| **Non obstante clause** | **\"Notwithstanding anything contained in…\"**: overrides other provisions | **IBC S.238**: the Insolvency Code overrides any inconsistent law |\n\n> **\"Shall\"** is usually **mandatory** and **\"may\"** usually **discretionary**. Courts sometimes read them differently depending on the context (Class F5).\n\n## 9. How to Read a Case Citation\n**Example 1:** *Kesavananda Bharati v. State of Kerala*, **(1973) 4 SCC 225**: year 1973, volume 4, *Supreme Court Cases*, page 225.\n\n**Example 2:** *Maneka Gandhi v. Union of India*, **AIR 1978 SC 597**: *All India Reporter*, 1978, Supreme Court, page 597. (Interpreted **Art. 21**: any procedure depriving liberty must be fair, just and reasonable.)\n\n**Neutral citation:** since 2023 the Supreme Court numbers reported judgments like **2023 INSC 123**.\n\n> **Free sources:** India Code (indiacode.nic.in) for bare Acts; Supreme Court and High Court websites; Indian Kanoon.\n\n## 10. Latin Maxims with their Statutory Basis\n| Maxim | Meaning | Where it appears in law |\n|---|---|---|\n| **Ignorantia juris non excusat** | Ignorance of the law is no excuse | Only a **mistake of fact** excuses, not a mistake of law: **BNS S.14 and S.17** (old IPC S.76 and S.79); **Contract Act S.21** |\n| **Ubi jus ibi remedium** | Where there is a right, there is a remedy | **Art. 32 and 226** (writs); **CPC S.9** |\n| **Audi alteram partem** | Hear the other side | **Art. 14 and 21** (*Maneka Gandhi*); **CPC O.5** (service of summons) |\n| **Nemo judex in causa sua** | No one should judge their own case | **Art. 14**; principles of natural justice |\n| **Actus non facit reum nisi mens sit rea** | No guilt without a guilty mind | Words like \"intentionally\", \"knowingly\", \"dishonestly\" in BNS offences; \"dishonestly\" is defined in **BNS S.2(7)** (old IPC S.24) |\n| **Res judicata** | A decided matter cannot be re-litigated | **CPC S.11**; criminal side: **Art. 20(2)** and **BNSS S.337** (old CrPC S.300) |\n\n## 11. One Problem, Three Branches of Law (worked example)\nA customer books **Sampradaya Hall** and gives a cheque for the balance of ₹1,50,000. The cheque **bounces**.\n\n| Branch | Applicable sections | Parties | Forum |\n|---|---|---|---|\n| **Criminal** | \"Cheque\" defined: **NI Act S.6**. Offence: **S.138**; present the cheque within its validity (3 months), notice within **30 days** of the return memo, **15 days** to pay: **S.138 proviso (a)–(c)**. Complaint within **1 month** after that: **S.142(1)(b)**. Interim compensation up to 20%: **S.143A**. Punishment: up to **2 years**, or fine up to **twice the cheque amount**, or both | You = **complainant**; customer = **accused** | Judicial Magistrate, Nandyal |\n| **Civil** | Contract: **Contract Act S.2(h)**; compensation for breach: **S.73**. Suit: **CPC S.26, O.7**; or summary suit: **CPC O.37** | You = **plaintiff**; customer = **defendant** | Civil court by value (**CPC S.6, S.15**) |\n| **Consumer** | \"Consumer\": **CPA S.2(7)**; \"deficiency\": **S.2(11)**; \"complaint\": **S.2(6)**; complaint filed under **S.35** | Customer = **complainant**; you = **opposite party** | District Consumer Commission (**S.34**) |\n\n> **Lesson:** one set of facts can give rise to civil, criminal and consumer cases at the same time.\n\n===\n\n## Class F1 Test (20 marks)\n**For every answer, also give the section or Article where the concept is found.**\n\n### Part A: one-line answers (1 mark each)\n1. Which Article of the Constitution defines \"law\", and what does it include?\n2. What is the standard of proof in a criminal case, and which BSA section defines \"proved\"?\n3. Which Article makes Supreme Court decisions binding on all courts in India?\n4. Give one example each of substantive and procedural law, with a section from each.\n5. What is the binding part of a judgment called?\n6. Which Article gives the President's assent to a Bill?\n7. What does a proviso begin with? Give the example from the NI Act.\n8. Under which CPC provision is a vakalatnama filed?\n9. In *AIR 1978 SC 597*, what does \"597\" stand for?\n10. Translate *Audi alteram partem*, and name one Article it is linked to.\n\n### Part B: short answers (3 marks each)\n11. Give four differences between civil and criminal law, citing the provision for how each type of case starts.\n12. Explain ratio decidendi and obiter dicta, and the Article that makes the ratio binding.\n\n### Part C: practical problem (4 marks)\n13. At a wedding in **Samriddhi Hall**, a guest slips on a wet floor and breaks a leg. In the same week, a supplier steals ₹50,000 of cooking vessels from the hall.\n  - (a) Which is mainly a civil matter and which is criminal? (2 marks)\n  - (b) Name the parties in each case, with the section under which the criminal case would be registered and the offence charged. (2 marks)\n"}, {"id": "01-cpc", "short": "Class 1: CPC — Structure, Key Definitions and Jurisdiction", "group": "Phase 1: Civil practice", "md": "# Class 1: CPC — Structure, Key Definitions and Jurisdiction\n_Code of Civil Procedure, 1908  |  Law Refresher Course, Phase 1_\n\n## Part A: What Has Changed Since 1994\n| Change | Effect |\n|---|---|\n| **CPC Amendment Acts of 1999 and 2002** (in force from 1 July 2002) | Written statement due within **30 days**, extendable to a maximum of **90 days** (Order VIII Rule 1). No more than **3 adjournments** per party (Order XVII Rule 1). |\n| **Section 89** added | Courts must refer suitable cases to ADR: arbitration, conciliation, mediation, Lok Adalat. |\n| **Commercial Courts Act, 2015** | For commercial disputes of ₹3 lakh and above, the 120-day limit for the written statement is strict. Also brings pre-institution mediation (S.12A) and case management hearings. |\n| **New criminal laws, from 1 July 2024** | IPC, CrPC and the Evidence Act are replaced by the **BNS, BNSS and Bharatiya Sakshya Adhiniyam**. Evidence rules apply in civil trials too. |\n| **E-filing and virtual hearings** | Now routine in most High Courts and many district courts. |\n\n## Part B: Structure of the CPC\n1. **Sections 1–158** contain the substantive principles, such as jurisdiction, res judicata, appeals and execution. Only **Parliament** can amend them.\n2. **The First Schedule, with 51 Orders**, contains the procedural rules. **High Courts** can amend these for their own state (Section 122). Andhra Pradesh has its own local amendments.\n\n> **Memory aid:** Sections tell you *what* the law is. Orders tell you *how* to do it.\n> Where a Section and a Rule conflict, the **Section prevails**.\n\n## Part C: Key Definitions (Section 2)\n### 1. Decree, S.2(2)\nThe formal expression of an adjudication that **conclusively determines the rights of the parties** on all or any of the matters in controversy in the suit.\n\n**Five essentials:**\n1. There is an adjudication (a judicial decision).\n2. It is made in a **suit**.\n3. It determines the **rights of the parties**.\n4. The determination is **conclusive**, meaning final as far as that court is concerned.\n5. It is **formally expressed**.\n\n**Three kinds:**\n- **Preliminary decree:** rights are decided but further proceedings are needed, e.g. partition suits and suits for accounts.\n- **Final decree:** the suit is completely disposed of.\n- **Partly preliminary, partly final:** e.g. a decree for possession (final) together with an inquiry into mesne profits (preliminary).\n\n**Deemed decrees:** rejection of a plaint (Order VII Rule 11), and determination of a question under Section 144 (restitution).\n\n**Not a decree:** an order from which an appeal lies as from an order, and dismissal for default.\n\n### 2. Judgment, Order and the parties\n| Term | Section | Meaning |\n|---|---|---|\n| Judgment | S.2(9) | The statement the judge gives of the **grounds** of a decree or order |\n| Order | S.2(14) | The formal expression of any decision of a civil court that is **not a decree** |\n| Decree-holder | S.2(3) | The person in whose favour a decree is passed or an executable order made |\n| Judgment-debtor | S.2(10) | The person against whom it is passed |\n| Legal Representative | S.2(11) | A person who in law represents the estate of a deceased person, including an intermeddler |\n| Mesne Profits | S.2(12) | Profits a person in **wrongful possession** actually received or might with ordinary diligence have received, **plus interest**. Profits from improvements made by that person are excluded. |\n\n> **Judgment** = the reasons. **Decree** = the final operative result. **Order** = any other decision.\n\n## Part D: Section 9, Jurisdiction of Civil Courts\n> *\"The Courts shall have jurisdiction to try all suits of a civil nature excepting suits of which their cognizance is either expressly or impliedly barred.\"*\n\n### Suit of a civil nature\nThe main question in the suit concerns a **civil right**, such as property, contract or office.\n- **Explanation I:** a suit about a right to property or to an office is civil even if it depends on religious rites or ceremonies.\n- **Explanation II:** this applies whether or not any fees are attached to the office.\n- A right to worship in a temple is civil in nature. A suit purely to uphold caste dignity or social status is not.\n\n### Express and implied bars\n- **Express bar:** the statute itself excludes the civil court, e.g. **Section 34 of the SARFAESI Act** (matters before the DRT), the Income-tax Act, and certain land revenue and tenancy laws.\n- **Implied bar:** the statute creates a special right together with a special remedy and tribunal, so ouster of the civil court is inferred.\n\n### Landmark cases\n| Case | Point |\n|---|---|\n| *Dhulabhai v. State of M.P.* (1968, SC) | Exclusion of civil court jurisdiction **must not be readily inferred**. Even where it is barred, the civil court can examine cases where the tribunal acted **without jurisdiction** or ignored fundamental principles of judicial procedure. |\n| *Kiran Singh v. Chaman Paswan* (1954, SC) | A decree passed without **inherent** jurisdiction is a **nullity** and can be challenged at any stage, even in execution. |\n\n> **Golden rule:** there is always a presumption **in favour** of civil court jurisdiction.\n> **Trick:** \"The civil court is the default doctor. A specialist (tribunal) takes over only if the law clearly says so.\"\n\n===\n\n## Class 1 Test (30 marks)\n### Section 1: Multiple choice (1 mark each)\n1. The CPC has how many Sections and Orders? (a) 158 Sections, 51 Orders (b) 151 Sections, 58 Orders (c) 160 Sections, 50 Orders (d) 158 Sections, 48 Orders\n2. Who can amend the Rules in the First Schedule for their state? (a) Parliament only (b) State Legislature (c) High Court (d) Supreme Court\n3. Rejection of a plaint under Order VII Rule 11 is: (a) an order (b) a deemed decree (c) a judgment (d) none of these\n4. Dismissal of a suit for default is: (a) a decree (b) a preliminary decree (c) not a decree (d) a final decree\n5. Mesne profits do **not** include: (a) profits actually received (b) interest on such profits (c) profits due to improvements made by the person in wrongful possession (d) profits that could have been received with ordinary diligence\n6. Under the amended Order VIII Rule 1, the maximum time for filing a written statement in an ordinary civil suit is: (a) 30 days (b) 60 days (c) 90 days (d) 120 days\n\n### Section 2: Short answers (3 marks each)\n7. Distinguish between **Judgment, Decree and Order**, with one example of each.\n8. What are **preliminary** and **final** decrees? Can a suit have more than one preliminary decree?\n9. Explain **express bar** and **implied bar** under Section 9, with one example of each.\n\n### Section 3: Practical problem (6 marks)\n10. A customer books **Samriddhi Hall** at SLNS Vaibhavam for a wedding and pays ₹2,00,000 as advance. Two weeks before the event the customer cancels and sues in the civil court at Nandyal for a full refund. Your booking agreement says *\"all disputes shall be decided only by the Consumer Commission.\"*\n  - (a) Is this a \"suit of a civil nature\" under Section 9? Give your reasons.\n  - (b) Can a private agreement oust the jurisdiction of a civil court? What principle applies? (Hint: Section 28 of the Indian Contract Act.)\n  - (c) As the hall owner's advocate, what defence would you raise?\n"}, {"id": "02-cpc", "short": "Class 2: CPC — The Complete Fast-Track", "group": "Phase 1: Civil practice", "md": "# Class 2: CPC — The Complete Fast-Track\n_Code of Civil Procedure, 1908  |  10 modules with cases and memory tricks  |  Law Refresher Course, Phase 1_\n\n> **Before you cite a case in court**, check the citation on SCC Online, Manupatra or Indian Kanoon.\n\n## Module 1: Foundation (Sections 1–9)\n- **Sections vs Orders.** Sections are the law and only Parliament can amend them. Orders are procedure, and High Courts can amend them (S.122). Where they conflict, the Section wins.\n- **Decree, Judgment, Order:** S.2(2), 2(9), 2(14).\n- **S.9:** civil courts try every suit of a civil nature unless it is expressly or impliedly barred.\n\n| Case | Point |\n|---|---|\n| *Dhulabhai v. State of M.P.* (1968) | Exclusion of civil court jurisdiction is not readily inferred. The civil court can still step in if a tribunal acted without jurisdiction or ignored natural justice. |\n| *Kiran Singh v. Chaman Paswan* (1954) | A decree passed without **inherent** jurisdiction is a **nullity** and can be challenged even in execution. |\n\n> **Trick:** \"The civil court is the default doctor. A specialist (tribunal) takes over only if the law clearly says so.\"\n\n## Module 2: Bars to a Suit (S.10, S.11, O.2 R.2)\n### 1. Res Sub Judice (S.10): stay of the later suit\nThe **later** suit is **stayed** (not dismissed) when all of these apply:\n1. Two suits are pending.\n2. The matter in issue is **directly and substantially the same**.\n3. The parties are the same, or litigate under the same title.\n4. The earlier suit is in a competent court in India.\n\n| Case | Point |\n|---|---|\n| *Aspi Jal v. Khushroo Rustom Dadyburjor* (2013, SC) | S.10 applies only when the **entire** subject matter is the same, so that the decision in the first suit would operate as res judicata in the second. |\n| *Indian Bank v. Maharashtra State Co-op Marketing Federation* (1998, SC) | S.10 bars the **trial** of the later suit, not its **filing**. |\n\n### 2. Res Judicata (S.11): bar on re-deciding a matter\n**Essentials** (mnemonic: **\"SAME-COMP-FINAL\"**):\n1. **Same** matter, directly and substantially in issue\n2. **Same** parties, or those claiming under them\n3. **Same** title\n4. **Competent** court\n5. Heard and **finally** decided\n\n**Constructive res judicata (Explanation IV):** a point that *might and ought* to have been raised is treated as raised and decided.\n\n| Case | Point |\n|---|---|\n| *Satyadhyan Ghosal v. Deorajin Debi* (1960) | Res judicata applies between **different stages of the same suit**. |\n| *Daryao v. State of U.P.* (1961) | Res judicata applies to **writ petitions** too. |\n| *Forward Construction Co. v. Prabhat Mandal* (1986) | Constructive res judicata applies to public interest litigation. |\n\n| | S.10 Res Sub Judice | S.11 Res Judicata |\n|---|---|---|\n| Status of first matter | **Pending** | **Decided** |\n| Effect | Later suit stayed | Later suit barred |\n| Purpose | Avoid conflicting decisions | Finality of decisions |\n\n> **Trick:** \"S.10: wait, the case is still cooking. S.11: done, the case is already served.\"\n\n### 3. Order II Rule 2: the whole claim at once\nIf a plaintiff leaves out part of a claim arising from the **same cause of action** without the court's leave, they cannot sue for it later.\n- *Gurbux Singh v. Bhooralal* (1964)\n- *Virgo Industries v. Venturetech* (2013): O.2 R.2 applies only where both claims arise from the **same cause of action**.\n\n> **Hall example:** you sue a client for unpaid hall rent but not for the furniture damage. You cannot file a second suit for the furniture damage.\n\n## Module 3: Where to Sue (S.15–21)\n| Section | Rule |\n|---|---|\n| **S.15** | File in the court of the **lowest grade** competent to try the suit. |\n| **S.16** | Suits about **immovable property** go where the property is situated. |\n| **S.17** | If the property is spread across jurisdictions, sue in any of them. |\n| **S.19** | For a wrong to a person or movables, sue where the wrong happened **or** where the defendant resides. |\n| **S.20** | All other suits go where the defendant resides or works, or where the cause of action arose, **wholly or in part**. |\n| **S.21** | Objections to territorial or pecuniary jurisdiction must be raised at the **first instance**. Otherwise they are waived, unless there was a failure of justice. |\n\n| Case | Point |\n|---|---|\n| *ABC Laminart v. A.P. Agencies* (1989) | An exclusive jurisdiction clause is valid **only if** the chosen court already has jurisdiction. |\n| *Swastik Gases v. Indian Oil* (2013) | Even without words like \"only\" or \"exclusive\", the intention to exclude other courts can be inferred. |\n| *Patel Roadways v. Prasad Trading* (1991) | A company can be sued where its **subordinate office** is, **if** the cause of action arose there. |\n\n> **Trick:** \"Land: sue where the land is. Wrong: where it happened or where the defendant lives. Everything else: the defendant's home or where the trouble started.\"\n> **Practical point:** put an exclusive jurisdiction clause in your hall booking agreement, e.g. \"Courts at Nandyal alone shall have jurisdiction.\"\n\n## Module 4: Parties and Pleadings (Orders I, VI, VII, VIII)\n### Parties (Order I)\n- **Necessary party:** no effective decree can be passed without them.\n- **Proper party:** their presence helps the court decide completely.\n- **O.1 R.10:** the court can add or strike out parties at any stage.\n- **O.1 R.8:** a representative suit is one person suing or being sued on behalf of many with the same interest.\n- *Mumbai International Airport v. Regency Convention Centre* (2010): the plaintiff is the **dominus litis**, the master of the suit, but the court can add necessary parties.\n\n### Pleadings (Order VI)\n- Plead **facts, not evidence or law** (O.6 R.2).\n- **O.6 R.17, amendment:** amendments should be allowed liberally before trial. After trial begins, the party must show **due diligence**.\n\n| Case | Point |\n|---|---|\n| *Revajeetu Builders v. Narayanaswamy* (2009) | Six factors for allowing an amendment. |\n| *LIC v. Sanjeev Builders* (2022, SC) | **Latest** summary of amendment principles. Allow liberally unless the amendment causes injustice, changes the nature of the suit, or seeks to add a time-barred claim. |\n\n### Plaint (Order VII)\n**O.7 R.11, rejection of plaint** (mnemonic: **\"C-U-S-B-D-N\"**):\n- (a) No **Cause** of action\n- (b) **Undervalued**, and not corrected after the court's direction\n- (c) Insufficient **Stamp** (court fee), not paid after the court's direction\n- (d) **Barred** by law, e.g. by limitation\n- (e) Not filed in **Duplicate**\n- (f) **Non**-compliance with O.7 R.9 (copies and summons fees)\n\n| Case | Point |\n|---|---|\n| *T. Arivandandam v. T.V. Satyapal* (1977) | A plaint that creates an **illusion** of a cause of action through clever drafting should be rejected at the threshold. |\n| *Saleem Bhai v. State of Maharashtra* (2003) | Only the **plaint averments** are examined. The written statement is irrelevant at this stage. |\n| *Dahiben v. Arvindbhai Kalyanji Bhanusali* (2020, SC) | Comprehensive restatement of O.7 R.11. A plaint that is plainly barred by limitation must be rejected. |\n\n**Return of plaint (O.7 R.10):** when the court lacks jurisdiction, the plaint is **returned** to be filed in the proper court, not rejected.\n\n### Written Statement (Order VIII)\n| Type of suit | Time limit | Nature of the limit |\n|---|---|---|\n| Ordinary suit | 30 days, extendable to **90** | **Directory** (*Kailash v. Nanhku*, 2005) |\n| Commercial suit | **120 days** | **Mandatory**: no written statement after that (*SCG Contracts v. K.S. Chamankar*, 2019) |\n\n- **Set-off (O.8 R.6)** is limited to an ascertained sum of money.\n- **Counter-claim (O.8 R.6A)** can be any claim, and is treated as a plaint.\n\n> **Trick:** \"Ordinary suit: 90 days, the court may forgive. Commercial suit: 120 days, no forgiveness.\"\n\n## Module 5: Trial Stage (Orders V, IX, X, XI, XIV–XX)\n### Appearance and default (Order IX)\n| Situation | Result |\n|---|---|\n| Neither party appears | Suit dismissed (R.3). Can be refiled or restored (R.4). |\n| Plaintiff absent, defendant present | Suit dismissed (R.8). Restoration under **R.9** within **30 days**. |\n| Defendant absent | **Ex parte** hearing (R.6). Ex parte decree set aside under **R.13** within **30 days**. |\n\nTo set aside an ex parte decree under **O.9 R.13**, show either that the summons was not duly served, or that there was **sufficient cause** for not appearing. *G.P. Srivastava v. R.K. Raizada* (2000): \"sufficient cause\" must be read **liberally**.\n\n> **Trick:** \"R.9 restores the Plaintiff's suit. R.13 rescues the Defendant from an ex parte decree.\"\n\n### Other trial points\n- **O.10:** the court examines the parties and refers the dispute to **ADR under S.89**. *Salem Advocates Bar Assn. v. UOI* (2005) upheld the amendments; *Afcons Infrastructure v. Cherian Varkey* (2010) explained which cases suit ADR.\n- **O.11:** discovery and inspection. Commercial suits have a stricter disclosure regime.\n- **O.14:** framing of issues. **Issues of law** such as jurisdiction or limitation may be decided first.\n- **O.17 R.1:** a maximum of **3 adjournments** per party.\n- **O.18 R.4:** chief examination is given by **affidavit**. Cross-examination happens in court or before a commissioner.\n- **O.20 R.1:** judgment within **30 days** of the hearing ending, extendable to **60**.\n\n## Module 6: Interim Reliefs (Orders XXXVIII–XL, S.94–95, S.148A)\n### Temporary injunction (O.39 R.1 and R.2)\nThe **triple test** (mnemonic: **\"P-B-I\"**):\n1. **P**rima facie case\n2. **B**alance of convenience\n3. **I**rreparable injury\n\n| Case | Point |\n|---|---|\n| *Dalpat Kumar v. Prahlad Singh* (1992) | Established the triple test. |\n| *Wander Ltd. v. Antox* (1990) | An appellate court should not interfere with the trial court's discretion unless it is arbitrary or perverse. |\n\n- **O.39 R.3:** for an ex parte injunction, reasons must be recorded and notice served on the other side soon after.\n- **O.39 R.3A:** the application must be disposed of within **30 days**.\n- **O.39 R.2A:** breach of an injunction leads to attachment of property and up to **3 months** in civil prison.\n- **O.38:** arrest or attachment **before judgment**, when the defendant is about to abscond or dispose of property.\n- **O.40:** appointment of a **receiver**.\n- **S.148A, Caveat:** entitles you to notice before any ex parte order. **Valid for 90 days.**\n\n> **Trick:** \"File a caveat before you sleep. The other side cannot get an ex parte order behind your back for 90 days.\"\n\n## Module 7: Special Suits\n| Provision | Topic | Key point |\n|---|---|---|\n| **S.80** | Suits against the **Government** | A **2-month** notice is required. Under S.80(2) a suit for urgent relief can be filed with the court's leave. |\n| **O.37** | **Summary suits** on negotiable instruments and written contracts | The defendant must get **leave to defend**. *IDBI Trusteeship v. Hubtown* (2016) revised the leave-to-defend principles. |\n| **O.32** | Minors | A next friend sues on the minor's behalf; a guardian ad litem defends. |\n| **O.33** | Indigent persons | The suit can proceed without paying court fee. |\n| **O.35** | Interpleader | Used when two people claim the same property from you. |\n| **Commercial Courts Act, S.12A** | **Pre-institution mediation** | *Patil Automation v. Rakheja Engineers* (2022): mandatory unless urgent relief is sought; a suit filed without it is rejected. |\n\n> **Trick:** for an O.37 summary suit, \"No leave, no defence: the decree follows.\"\n\n## Module 8: Death, Withdrawal and Compromise (Orders XXII, XXIII)\n- **O.22:** legal representatives must be substituted within **90 days** (Limitation Act, Art.120), otherwise the suit **abates automatically**. An application to set aside the abatement must be filed within **60 days** after that (Art.121).\n- **O.23 R.1:** the plaintiff can withdraw the suit. Without the court's permission, a fresh suit is **barred**.\n- **O.23 R.3:** a **lawful compromise** must be recorded in writing and signed.\n- **O.23 R.3A:** no separate suit lies to challenge a compromise decree. The challenge must be made in the same court.\n\n## Module 9: Appeals, Reference, Review, Revision (S.96–115, Orders XLI–XLVII)\n| Remedy | Provision | Where it lies | Time limit | Grounds |\n|---|---|---|---|---|\n| **First appeal** | S.96, O.41 | District Court or High Court | 30 days (District Court) or 90 days (High Court) | Facts **and** law |\n| **Second appeal** | S.100 | High Court only | 90 days | Only a **substantial question of law** |\n| **Appeal from orders** | S.104, O.43 | Appellate court | 30 or 90 days | Only orders listed in O.43 |\n| **Review** | S.114, O.47 | **Same** court | 30 days | Error apparent on the face of the record, new evidence, or other sufficient reason |\n| **Revision** | S.115 | High Court | — | Jurisdictional error only |\n| **Reference** | S.113, O.46 | High Court | — | Doubt on the validity of a statute |\n\n- **S.96(4):** no appeal in Small Cause suits up to ₹10,000, except on a question of law.\n- **S.102:** no second appeal in money suits up to **₹25,000**.\n\n| Case | Point |\n|---|---|\n| *Santosh Hazari v. Purushottam Tiwari* (2001) | The first appellate court must deal with the trial court's reasoning. It cannot simply affirm. |\n| *Hero Vinoth v. Seshammal* (2006) | Explains what counts as a \"substantial question of law\". |\n| *Kamlesh Verma v. Mayawati* (2013) | Review is **not** an appeal in disguise. |\n| *Radhey Shyam v. Chhabi Nath* (2015) | Judicial orders of civil courts can be challenged only under **Art. 227**, not by certiorari under Art. 226. |\n\n> **Trick:** Appeal = a higher court, a fresh look. Review = the same court corrects itself. Revision = the High Court checks jurisdiction only. Reference = the lower court asks the High Court for guidance.\n\n## Module 10: Execution (S.36–74, Order XXI)\n- **S.38:** a decree is executed by the court that passed it, or by a court to which it is transferred (S.39).\n- **S.47:** **all questions** between the parties about execution are decided **by the executing court**. A separate suit is not allowed.\n- **S.51, modes of execution:** delivery of property; attachment and sale; arrest and detention; appointment of a receiver.\n- **S.58, civil prison:** decree above ₹5,000, up to **3 months**; decree between ₹2,000 and ₹5,000, up to **6 weeks**; decree up to ₹2,000, **no detention**.\n- **S.60:** property exempt from attachment includes necessary clothing, tools of artisans, and the first ₹1,000 plus two-thirds of the rest of a salary.\n- **O.21 R.97–101:** a third party who obstructs possession has their claim decided **within the execution** itself (*Silverline Forum v. Rajiv Trust*, 1998).\n- **S.144, Restitution:** if a decree is reversed, the amount paid must be returned.\n- **Limitation:** a decree can be executed within **12 years** (Art.136).\n\n| Recent case | Point |\n|---|---|\n| *Rahul S. Shah v. Jinendra Kumar Gandhi* (2021, SC) | 14 directions to stop delays in execution. Execution must be completed within **6 months**, and the court should ascertain third-party interests at the stage of the suit itself. |\n| *Periyammal v. V. Rajamani* (2025, SC) | The Court called the pendency of execution petitions alarming, directed High Courts to ensure they are disposed of within 6 months, and to monitor them. |\n\n> **Trick:** \"A decree without execution is like a cheque without a bank.\"\n\n===\n\n## Master Time-Limit Chart (memorise this)\n| Action | Time limit |\n|---|---|\n| Written statement (ordinary suit) | 30 days, up to 90 |\n| Written statement (commercial suit) | 120 days, strict |\n| S.80 notice to Government | 2 months |\n| Caveat validity | 90 days |\n| Setting aside an ex parte decree (O.9 R.13) | 30 days |\n| Restoration of a suit (O.9 R.9) | 30 days |\n| Appeal to District Court | 30 days |\n| Appeal to High Court | 90 days |\n| Review | 30 days |\n| Substitution of legal representatives | 90 days |\n| Setting aside abatement | 60 days |\n| Execution of a decree | 12 years |\n| Pronouncing judgment | 30 days, up to 60 |\n| Adjournments | 3 maximum |\n\n## CPC Comprehensive Test (50 marks)\n### Part A: one-line answers (1 mark each)\n1. Which section deals with res sub judice?\n2. What is the validity period of a caveat?\n3. Name the triple test for a temporary injunction.\n4. Within what time must a written statement be filed in a commercial suit?\n5. Which section bars a second appeal in money suits up to ₹25,000?\n6. Which case held that a decree passed without inherent jurisdiction is a nullity?\n7. Under which Order and Rule is a plaint rejected?\n8. What is the limitation period for executing a decree?\n9. Which provision makes pre-institution mediation mandatory in commercial suits?\n10. Who decides questions relating to execution between the parties, and under which section?\n\n### Part B: short notes (4 marks each)\n11. Distinguish S.10 from S.11, citing one case each.\n12. Constructive res judicata, with an example.\n13. The grounds for rejecting a plaint, and the *Dahiben* (2020) case.\n14. The directions in *Rahul S. Shah v. Jinendra Kumar Gandhi* (2021).\n15. Review vs Revision vs Appeal.\n\n### Part C: practical problem (20 marks)\n16. A caterer working at your **Sampradaya Hall** event causes ₹3 lakh of damage. You get an ex parte decree in Nandyal. The caterer now lives in Hyderabad and has transferred their van to a relative.\n  - (a) How will you execute the decree in Hyderabad? (5 marks)\n  - (b) What can you do about the van transfer? (5 marks)\n  - (c) The caterer applies to set aside the ex parte decree after 45 days. What is your objection? (5 marks)\n  - (d) What should you have done **before** judgment to protect the claim? (5 marks)\n"}, {"id": "00-curriculum", "short": "A Tour of Indian Law and the Full Course Curriculum", "group": "Course map", "md": "# A Tour of Indian Law and the Full Course Curriculum\n_Law Refresher Course for a 1994 LLB graduate returning to practice  |  Updated October 2026_\n\n## Part 1: How Indian Law Is Organised\n\n### 1.1 The Constitution sits at the top\nEvery law in India draws its authority from the **Constitution of India (1950)**. A law that conflicts with it is void (Article 13). The Constitution:\n- creates the three organs: **Legislature** (makes law), **Executive** (enforces law) and **Judiciary** (interprets law)\n- divides law-making power between the Centre and the States through the **Seventh Schedule**:\n  - **Union List**: Parliament alone, e.g. banking, securities, income tax\n  - **State List**: State Legislature alone, e.g. land, police, local government\n  - **Concurrent List**: both, e.g. contracts, civil and criminal procedure, marriage, transfer of property. If they conflict, the central law usually prevails (Article 254).\n\n### 1.2 Sources of law\n| Source | What it is | Example |\n|---|---|---|\n| Constitution | The supreme law | Article 21, right to life and personal liberty |\n| Statutes (Acts) | Laws made by Parliament or a State Legislature | CPC 1908, Contract Act 1872 |\n| Delegated legislation | Rules, regulations and notifications made under an Act | SEBI Regulations, CPC Orders as amended by the High Court |\n| Judicial precedent | Decisions of higher courts bind lower courts | Supreme Court law binds all courts (Article 141) |\n| Custom and personal law | Customs and religious laws in family matters | Hindu and Muslim personal law |\n\n### 1.3 Hierarchy of courts (Andhra Pradesh example)\n| Level | Court | What it hears |\n|---|---|---|\n| 1 | **Supreme Court of India**, New Delhi | Final appeals, constitutional matters, Article 32 writs |\n| 2 | **High Court of Andhra Pradesh**, Amaravati | Appeals, revisions, Article 226 and 227 writs |\n| 3 | **District and Sessions Court** (e.g. at Nandyal) | District-level civil appeals and suits, sessions trials |\n| 4 | **Senior Civil Judge** and **Chief Judicial Magistrate** | Civil suits above the junior limit, criminal trials |\n| 5 | **Junior Civil Judge** and **Judicial Magistrate** | Smaller civil suits, criminal trials |\n| Special | Tribunals and Commissions | Consumer Commissions, DRT, NCLT, Family Courts, MACT, RERA |\n\n> **Memory trick:** \"Constitution is the roof, statutes are the walls, rules are the bricks, and judgments are the cement that holds them together.\"\n\n## Part 2: The Major Changes Since 1994\n\nThese are the changes you most need to catch up on, because they did not exist when you graduated.\n\n| Year | Change | Why it matters |\n|---|---|---|\n| 1996 | **Arbitration and Conciliation Act** replaced the 1940 Act | Arbitration is now the main route for commercial disputes |\n| 1999 / 2002 | **CPC amendments** | Strict timelines, limited adjournments, ADR under Section 89 |\n| 2000 | **Information Technology Act** | Electronic records, e-signatures, cyber offences |\n| 2002 | **SARFAESI Act** | Banks recover secured loans without going to court |\n| 2005 | **RTI Act**; **Domestic Violence Act**; **Hindu Succession amendment** | Daughters became coparceners (equal birthright in joint family property) |\n| 2013 | **Companies Act** and the new **Land Acquisition Act** (RFCTLARR) | Both replaced Acts from the 1950s and 1890s |\n| 2015 | **Commercial Courts Act** | Fast-track commercial suits with a strict 120-day written statement |\n| 2016 | **Insolvency and Bankruptcy Code**; **RERA** | A new insolvency regime; protection for home buyers |\n| 2017 | **GST** | One national indirect tax replaced many older taxes |\n| 2018 | **Specific Relief Act amendment** | Specific performance is now the normal remedy, not discretionary |\n| 2019 | **Consumer Protection Act** | E-commerce and product liability; e-filing of complaints |\n| 2023 | **Mediation Act**; **Digital Personal Data Protection Act** | A formal mediation framework; data privacy law |\n| 1 July 2024 | **BNS, BNSS and BSA** replaced the **IPC, CrPC and Evidence Act** | All criminal and evidence work now uses the new section numbers |\n| 21 Nov 2025 | **Four Labour Codes** in force | They consolidate 29 central labour laws |\n| 1 April 2026 | **Income-tax Act, 2025** in force | Replaces the Income-tax Act, 1961 |\n\n> **Verify before use:** laws keep changing. Before you rely on a section in court, check the current bare Act on India Code (indiacode.nic.in) and recent judgments on SCC Online or Indian Kanoon.\n\n## Part 3: Map of All Major Indian Laws\n\n### A. Foundation subjects\n| Law | What it covers |\n|---|---|\n| Constitution of India, 1950 | Fundamental rights, writs, separation of powers, Centre–State relations |\n| Jurisprudence | Theory of law: sources, rights and duties, ownership, possession |\n| Interpretation of Statutes and the General Clauses Act, 1897 | How courts read and apply laws |\n\n### B. Procedural laws (how cases move through courts)\n| Law | What it covers |\n|---|---|\n| **Code of Civil Procedure, 1908** | Procedure in civil suits, from filing to execution |\n| **Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)** | Criminal procedure: FIR, arrest, bail, trial. Replaces the CrPC. |\n| **Bharatiya Sakshya Adhiniyam, 2023 (BSA)** | Evidence in civil and criminal cases. Replaces the Evidence Act. |\n| **Limitation Act, 1963** | Time limits for suits, appeals and applications |\n| Court Fees Act and Suits Valuation Act (AP law) | Valuation of suits and the court fee payable |\n| Commercial Courts Act, 2015 | Special procedure for commercial disputes |\n\n### C. Civil and commercial substantive laws\n| Law | What it covers |\n|---|---|\n| **Indian Contract Act, 1872** | Formation of contracts, breach, damages, indemnity, guarantee, agency |\n| **Specific Relief Act, 1963** | Specific performance, injunctions, declarations |\n| Sale of Goods Act, 1930 | Sale contracts, conditions and warranties |\n| Partnership Act, 1932 and LLP Act, 2008 | Firms and limited liability partnerships |\n| **Negotiable Instruments Act, 1881** | Cheques, including cheque bounce under Section 138 |\n| Law of Torts | Negligence, nuisance, defamation (mostly judge-made law) |\n| **Consumer Protection Act, 2019** | Deficiency in service, unfair trade practices |\n| Arbitration and Conciliation Act, 1996; Mediation Act, 2023 | Out-of-court dispute resolution |\n\n### D. Property and land laws\n| Law | What it covers |\n|---|---|\n| **Transfer of Property Act, 1882** | Sale, mortgage, lease, gift, exchange |\n| **Registration Act, 1908** and the **Indian Stamp Act** (AP amendments) | Which documents must be registered and stamped, and the effect of not doing so |\n| Indian Easements Act, 1882 | Rights of way, light and water |\n| RERA, 2016 and the AP RERA Rules | Real estate projects and buyer protection |\n| RFCTLARR Act, 2013 | Land acquisition and compensation |\n| **AP Rights in Land and Pattadar Pass Books Act, 1971** | Revenue records (pattas, the 1-B register, adangal) |\n| **AP Buildings (Lease, Rent and Eviction) Control Act, 1960** | Tenancy and eviction of tenants |\n| AP Land Reforms (Ceiling on Agricultural Holdings) Act, 1973 | Land ceiling |\n\n### E. Family and succession laws\n| Law | What it covers |\n|---|---|\n| **Hindu Marriage Act, 1955** | Marriage, divorce, maintenance |\n| **Hindu Succession Act, 1956** (amended 2005) | Inheritance. *Vineeta Sharma v. Rakesh Sharma* (2020): daughters are coparceners by birth. |\n| Hindu Adoptions and Maintenance Act, 1956; Hindu Minority and Guardianship Act, 1956 | Adoption, maintenance, guardianship |\n| Muslim Personal Law (Shariat) Application Act, 1937; Muslim Women (Protection of Rights on Marriage) Act, 2019 | Muslim family law; the 2019 Act made triple talaq an offence |\n| Special Marriage Act, 1954; Indian Succession Act, 1925 | Inter-faith marriage; wills and probate |\n| Protection of Women from Domestic Violence Act, 2005 | Residence, protection and monetary relief |\n| Family Courts Act, 1984; Guardians and Wards Act, 1890 | Family court procedure; custody |\n\n### F. Criminal laws\n| Law | What it covers |\n|---|---|\n| **Bharatiya Nyaya Sanhita, 2023 (BNS)** | Offences and punishments. Replaces the IPC. |\n| BNSS, 2023 and BSA, 2023 | Procedure and evidence (see Part B above) |\n| NDPS Act, 1985 | Narcotics |\n| POCSO Act, 2012 | Sexual offences against children |\n| Prevention of Corruption Act, 1988 | Corruption by public servants |\n| IT Act, 2000 (criminal provisions) | Cyber crime |\n| SC/ST (Prevention of Atrocities) Act, 1989 | Atrocities against Scheduled Castes and Tribes |\n\n### G. Corporate, banking and securities laws (relevant to your share trading)\n| Law | What it covers |\n|---|---|\n| Companies Act, 2013 | Incorporation, directors, meetings, shareholder remedies |\n| **Insolvency and Bankruptcy Code, 2016** | Corporate insolvency (the NCLT) and personal insolvency |\n| SARFAESI Act, 2002 and the RDB Act, 1993 | Bank recovery, the DRT |\n| **SEBI Act, 1992**; Securities Contracts (Regulation) Act, 1956; Depositories Act, 1996 | Stock market regulation, insider trading, investor protection |\n| FEMA, 1999; PMLA, 2002 | Foreign exchange; money laundering |\n| Competition Act, 2002 | Anti-competitive agreements, abuse of dominance |\n\n### H. Tax laws\n| Law | What it covers |\n|---|---|\n| **Income-tax Act, 2025** (in force from 1 April 2026) | Direct tax. Replaces the 1961 Act. |\n| CGST Act, 2017 and the AP GST Act, 2017 | GST on goods and services, including your function hall bookings |\n\n### I. Labour and industrial laws\n| Law | What it covers |\n|---|---|\n| Code on Wages, 2019 | Minimum wages, payment of wages, bonus |\n| Industrial Relations Code, 2020 | Trade unions, layoffs, disputes |\n| Code on Social Security, 2020 | PF, ESI, gratuity, maternity benefit |\n| Occupational Safety, Health and Working Conditions Code, 2020 | Workplace safety |\n\n### J. Public and administrative laws\n| Law | What it covers |\n|---|---|\n| Administrative Law | Natural justice, judicial review, writs |\n| Right to Information Act, 2005 | Getting information from public authorities |\n| Environment laws (EP Act 1986, Water Act 1974, Air Act 1981) | Pollution and environmental clearances |\n| Digital Personal Data Protection Act, 2023 | Collection and use of personal data |\n| Motor Vehicles Act, 1988 | Accident claims (MACT) |\n\n### K. Professional skills\n| Subject | What it covers |\n|---|---|\n| **Advocates Act, 1961** and **Bar Council of India Rules** | Enrolment, the AIBE, professional conduct |\n| Professional Ethics | Duties to the court, the client and opponents |\n| **Drafting, Pleading and Conveyancing** | Plaints, written statements, petitions, sale deeds, agreements, notices |\n| Moot court and court craft | Arguments, examination of witnesses, legal research |\n\n## Part 4: Your Study Curriculum (in order)\n\nThe order is chosen so that each subject builds on the previous one, starting with what you need most for practice in Nandyal and for the AIBE.\n\n| No. | Subject | Classes | Key focus |\n|---|---|---|---|\n| **Phase 0** | **Foundations (start here, as a fresher)** | | |\n| F1 | Introduction to Law and the Indian Legal System | 1 | What law is, types of law, sources, courts, legal terms, how to read a bare Act and a citation |\n| F2 | Legal Language and Latin Maxims | 1 | The 40 maxims and terms used daily in courts |\n| F3 | Basics of Jurisprudence | 1 | Rights and duties, ownership, possession, persons, liability |\n| F4 | Constitution: the Basics | 1 | Preamble, structure, fundamental rights, writs at a glance |\n| F5 | Interpretation of Statutes and Legal Research | 1 | Rules of interpretation, the General Clauses Act, finding cases online |\n| **Phase 1** | **Civil practice core** | | |\n| 1 | Code of Civil Procedure, 1908 | 2 (done; revise after Phase 0) | Jurisdiction, pleadings, injunctions, appeals, execution |\n| 2 | Limitation Act, 1963 | 1 | Time limits, condonation of delay (S.5), acknowledgment (S.18) |\n| 3 | Indian Contract Act, 1872 | 2 | Offer, consideration, void contracts, breach, damages |\n| 4 | Specific Relief Act, 1963 (2018 amendment) | 1 | Specific performance, injunctions, declarations |\n| 5 | Transfer of Property Act, Registration Act and Stamp Act | 2 | Sale, mortgage, lease, gift; registration; AP stamp duty |\n| 6 | Bharatiya Sakshya Adhiniyam, 2023 (Evidence) | 2 | Relevancy, burden of proof, electronic evidence, witnesses |\n| **Phase 2** | **Criminal practice** | | |\n| 7 | Bharatiya Nyaya Sanhita, 2023 | 2 | General exceptions, offences against body, property and documents |\n| 8 | Bharatiya Nagarik Suraksha Sanhita, 2023 | 2 | FIR, arrest, bail, trial, appeals |\n| 9 | Negotiable Instruments Act (Section 138) | 1 | Cheque bounce prosecutions, which are very common work |\n| **Phase 3** | **Family and property** | | |\n| 10 | Hindu law (marriage, succession, adoption, maintenance) | 2 | 2005 amendment, partition suits |\n| 11 | Muslim law, Special Marriage Act, Domestic Violence Act | 1 | Personal law and women's protection |\n| 12 | AP land laws and Rent Control | 1 | Revenue records, tenancy, eviction |\n| **Phase 4** | **Constitution and public law** | | |\n| 13 | Constitution of India | 2 | Fundamental rights, writs, Articles 226 and 227 |\n| 14 | Administrative law and RTI | 1 | Natural justice, judicial review |\n| **Phase 5** | **Business and commercial** | | |\n| 15 | Consumer Protection Act, 2019 | 1 | Directly relevant to your function halls |\n| 16 | Arbitration and Mediation | 1 | Section 34 challenges, Section 9 interim relief |\n| 17 | Companies Act, IBC, SARFAESI | 2 | Corporate disputes and recovery |\n| 18 | SEBI and securities law | 1 | Relevant to your share trading |\n| 19 | Torts and Motor Vehicles Act (MACT) | 1 | Negligence, compensation |\n| 20 | Labour Codes, GST and Income-tax basics | 1 | Overview for advising businesses |\n| **Phase 6** | **Becoming a practising advocate** | | |\n| 21 | Advocates Act, Bar Council Rules and Professional Ethics | 1 | Enrolment and the AIBE |\n| 22 | Drafting, Pleading and Conveyancing | 3 | Model plaint, written statement, bail petition, sale deed, legal notice |\n| 23 | AIBE revision and mock tests | 2 | Practice with past-paper style questions |\n\n> **Total: about 40 classes.** Each class comes with its own PDF: the lesson, landmark and recent cases, memory tricks, a time-limit chart where relevant, and a test.\n\n## Part 5: How Each Class Works\n1. **Lesson**: the important sections explained simply, with examples from your own business. **Every concept states the section where it is defined and the sections that apply.** Where a law has been replaced, the old section number is given too, e.g. \"BNS S.303 (old IPC S.378)\".\n2. **Cases**: classic landmark judgments plus recent Supreme Court rulings.\n3. **Tricks**: mnemonics and comparison tables to help you remember.\n4. **Test**: one-line answers, short notes and a practical problem. You reply and I grade.\n5. **PDF**: a downloadable copy of every class, so you can build your own notes file.\n\n## Part 6: Steps to Start Practising\n- **Enrolment:** apply to the **Bar Council of Andhra Pradesh** with your LLB degree, marks memos, transfer and migration certificates, and the required declarations. A person who has been in other employment declares that they have left it.\n- **AIBE:** after enrolment, pass the **All India Bar Examination** to receive the Certificate of Practice. It is an open-book, multiple-choice exam.\n- **Junior years:** work under a senior advocate at the Nandyal courts for at least 1 to 2 years. Drafting and court craft are learned by doing.\n- **Your advantage:** your 26 years in business, management and FMCG, plus your understanding of markets, give you a natural fit for **commercial, consumer, property and securities** work.\n\n> Check the latest enrolment fees and the AIBE schedule on the official Bar Council of India and Bar Council of Andhra Pradesh websites before you apply.\n"}]</script>
+<script>
+(function () {
+  const CLASSES = JSON.parse(document.getElementById("classes-data").textContent);
+  const byId = Object.fromEntries(CLASSES.map(c => [c.id, c]));
+  const $ = id => document.getElementById(id);
+
+  // ---------- Markdown (the same small subset the PDF builder uses) ----------
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function inline(s) {
+    s = esc(s);
+    s = s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    s = s.replace(/(^|[^\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])/g, "$1<i>$2</i>");
+    return s;
+  }
+  function slug(s) { return s.toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60); }
+  function plain(s) { return s.replace(/\*\*/g, "").replace(/\*/g, ""); }
+
+  function renderLesson(cls) {
+    const lines = cls.md.split("\n");
+    const out = [];
+    let h2 = "", h3 = "", list = null;
+    const section = () => esc(h3 ? (h2 ? h2 + " › " + h3 : h3) : h2);
+    const closeList = () => { if (list) { out.push("</" + list + ">"); list = null; } };
+    const openList = t => { if (list !== t) { closeList(); out.push("<" + t + ' data-section="' + section() + '">'); list = t; } };
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].replace(/\s+$/, "");
+      if (!line.trim() || line.trim() === "===") { closeList(); continue; }
+      if (line.startsWith("# ")) {
+        closeList();
+        out.push('<h1 data-section="">' + inline(line.slice(2)) + "</h1>");
+        const nx = lines[i + 1] || "";
+        if (nx.startsWith("_") && nx.trim().endsWith("_")) { out.push('<p class="sub" data-section="">' + inline(nx.trim().slice(1, -1)) + "</p>"); i++; }
+      } else if (line.startsWith("## ")) {
+        closeList(); h2 = plain(line.slice(3)); h3 = "";
+        out.push('<h2 id="' + cls.id + "--" + slug(h2) + '" data-section="' + section() + '">' + inline(line.slice(3)) + "</h2>");
+      } else if (line.startsWith("### ")) {
+        closeList(); h3 = plain(line.slice(4));
+        out.push('<h3 id="' + cls.id + "--" + slug(h2 + "-" + h3) + '" data-section="' + section() + '">' + inline(line.slice(4)) + "</h3>");
+      } else if (line.startsWith("|")) {
+        closeList();
+        const rows = [];
+        while (i < lines.length && lines[i].startsWith("|")) { rows.push(lines[i]); i++; }
+        i--;
+        const cells = rows.filter(r => !/^\|?[\s:|-]+\|?$/.test(r.trim()))
+          .map(r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
+        let t = '<div class="table-wrap"><table data-section="' + section() + '">';
+        cells.forEach((r, ri) => {
+          const tag = ri === 0 ? "th" : "td";
+          t += "<tr>" + r.map(c => "<" + tag + ">" + inline(c) + "</" + tag + ">").join("") + "</tr>";
+        });
+        out.push(t + "</table></div>");
+      } else if (line.startsWith(">")) {
+        closeList();
+        const parts = [];
+        while (i < lines.length && lines[i].startsWith(">")) { parts.push(inline(lines[i].replace(/^>\s?/, ""))); i++; }
+        i--;
+        out.push('<div class="callout" data-section="' + section() + '">' + parts.join("<br>") + "</div>");
+      } else if (line.startsWith("  - ")) {
+        if (!list) openList("ul");
+        out.push('<li class="sub2">' + inline(line.slice(4)) + "</li>");
+      } else if (line.startsWith("- ")) {
+        openList("ul"); out.push("<li>" + inline(line.slice(2)) + "</li>");
+      } else if (/^\d+\. /.test(line)) {
+        openList("ol"); out.push("<li>" + inline(line.replace(/^\d+\. /, "")) + "</li>");
+      } else {
+        closeList(); out.push('<p data-section="' + section() + '">' + inline(line) + "</p>");
+      }
+    }
+    closeList();
+    return out.join("\n");
+  }
+
+  // ---------- Storage: private per-person db, or this browser as a fallback ----------
+  let notes = [];
+  let store = null; // { kind: "db" | "local", add, update, remove }
+  const LS_KEY = "law-study-desk-notes";
+
+  function lsRead() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (e) { return []; } }
+  function lsWrite(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
+
+  function useLocal(reason) {
+    notes = lsRead();
+    store = {
+      kind: "local",
+      async add(n) { n.id = "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); notes.unshift(n); if (!lsWrite(notes)) throw new Error("This browser blocked saving."); renderAll(); },
+      async update(id, patch) { notes = notes.map(n => n.id === id ? Object.assign({}, n, patch) : n); lsWrite(notes); renderAll(); },
+      async remove(id) { notes = notes.filter(n => n.id !== id); lsWrite(notes); renderAll(); },
+    };
+    $("store-status").textContent = reason || "Saved in this browser only";
+    renderAll();
+  }
+
+  async function connect() {
+    const claude = window.claude;
+    if (!claude || !claude.use) { useLocal("Saved in this browser only"); return; }
+    try {
+      const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+      const uid = user ? await user.id() : null;
+      if (!db || !uid) { useLocal("Sign in to keep notes in your account. For now they are saved in this browser only."); return; }
+      const col = db.doc("data/users/" + uid + "/profile").collection("notes");
+      store = {
+        kind: "db",
+        async add(n) { await col.doc().set(n); },
+        async update(id, patch) { await col.doc(id).update(patch); },
+        async remove(id) { await col.doc(id).delete(); },
+      };
+      $("store-status").textContent = "Saved privately to your account";
+      col.orderBy("createdAt", "desc").limit(1000).onSnapshot(snap => {
+        notes = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderAll();
+      }, () => useLocal("Your account storage is unavailable right now. Notes are saved in this browser only."));
+    } catch (e) {
+      useLocal("Saved in this browser only");
+    }
+  }
+
+  // ---------- Classes view ----------
+  let currentClass = CLASSES[0].id;
+  function buildClassPickers() {
+    const nav = $("class-nav"), sel = $("class-select"), fc = $("filter-class"), cc = $("compose-class");
+    let lastGroup = null;
+    nav.innerHTML = ""; sel.innerHTML = "";
+    CLASSES.forEach(c => {
+      if (c.group !== lastGroup) {
+        const l = document.createElement("div"); l.className = "label"; l.textContent = c.group; nav.appendChild(l);
+        lastGroup = c.group;
+      }
+      const b = document.createElement("button");
+      b.textContent = c.short; b.dataset.id = c.id;
+      b.addEventListener("click", () => openClass(c.id));
+      nav.appendChild(b);
+      sel.add(new Option(c.short, c.id));
+    });
+    sel.addEventListener("change", () => openClass(sel.value));
+    fc.add(new Option("All classes", ""));
+    CLASSES.forEach(c => { fc.add(new Option(c.short, c.id)); cc.add(new Option(c.short, c.id)); });
+    cc.add(new Option("General (no class)", "general"));
+  }
+
+  function openClass(id, anchor) {
+    currentClass = id;
+    $("lesson").innerHTML = renderLesson(byId[id]);
+    document.querySelectorAll("#class-nav button").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
+    $("class-select").value = id;
+    markNotedSections();
+    showView("read");
+    if (anchor) {
+      const el = document.getElementById(anchor);
+      if (el) { el.scrollIntoView({ block: "start" }); return; }
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function markNotedSections() {
+    const noted = new Set(notes.filter(n => n.classId === currentClass).map(n => n.section));
+    document.querySelectorAll("#lesson [data-section]").forEach(el => {
+      el.classList.toggle("has-note", noted.has(el.dataset.section) && el.dataset.section !== "" && !/^H[123]$/.test(el.tagName));
+    });
+  }
+
+  // ---------- Selecting text ----------
+  let pending = null;
+  document.addEventListener("selectionchange", () => {
+    const s = window.getSelection();
+    const text = s && s.rangeCount ? s.toString().trim() : "";
+    if (!text) { return; }
+    const node = s.anchorNode && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentElement);
+    if (!node || !$("lesson").contains(node)) return;
+    const blk = node.closest("[data-section]");
+    pending = { text: text.slice(0, 4000), classId: currentClass, section: blk ? blk.dataset.section : "" };
+    const pv = $("sel-preview"); pv.textContent = "";
+    const m = document.createElement("mark"); m.textContent = text.length > 90 ? text.slice(0, 90) + "…" : text;
+    pv.append("Selected: ", m);
+    $("selbar").hidden = false;
+  });
+  ["sel-add", "sel-important", "sel-cancel"].forEach(id => $(id).addEventListener("pointerdown", e => e.preventDefault()));
+  $("sel-cancel").addEventListener("click", clearSelection);
+  $("sel-add").addEventListener("click", () => saveSelection(false));
+  $("sel-important").addEventListener("click", () => saveSelection(true));
+
+  function clearSelection() {
+    pending = null; $("selbar").hidden = true;
+    try { window.getSelection().removeAllRanges(); } catch (e) {}
+  }
+  async function saveSelection(important) {
+    if (!pending) return;
+    if (!store) { toast("Still connecting. Try again in a moment."); return; }
+    const c = byId[pending.classId];
+    const note = { text: pending.text, classId: c.id, classTitle: c.short, section: pending.section, comment: "", important: !!important, createdAt: Date.now() };
+    $("sel-add").disabled = $("sel-important").disabled = true;
+    try { await store.add(note); toast(important ? "Added to notes as important" : "Added to notes"); clearSelection(); }
+    catch (e) { toast(saveError(e)); }
+    finally { $("sel-add").disabled = $("sel-important").disabled = false; }
+  }
+  function saveError(e) {
+    if (e && e.code === "quota_exceeded") return "Your notes storage is full. Delete some old notes, then try again.";
+    return "Could not save the note. Check your connection and try again.";
+  }
+
+  // ---------- Notes view ----------
+  function renderAll() {
+    $("note-count").textContent = "(" + notes.length + ")";
+    renderNotes();
+    if (!$("view-read").hidden) markNotedSections();
+  }
+
+  function highlight(text, q) {
+    const frag = document.createDocumentFragment();
+    if (!q) { frag.append(text); return frag; }
+    const lower = text.toLowerCase(), ql = q.toLowerCase();
+    let i = 0, j;
+    while ((j = lower.indexOf(ql, i)) !== -1) {
+      frag.append(text.slice(i, j));
+      const m = document.createElement("mark"); m.textContent = text.slice(j, j + q.length); frag.append(m);
+      i = j + q.length;
+    }
+    frag.append(text.slice(i));
+    return frag;
+  }
+
+  function renderNotes() {
+    const list = $("notes-list");
+    const q = $("search").value.trim();
+    const fc = $("filter-class").value;
+    const imp = $("filter-important").checked;
+    const shown = notes.filter(n =>
+      (!fc || n.classId === fc) && (!imp || n.important) &&
+      (!q || (n.text + " " + (n.comment || "") + " " + (n.section || "")).toLowerCase().includes(q.toLowerCase())));
+    list.innerHTML = "";
+    if (!notes.length) {
+      list.innerHTML = '<div class="empty"><b>No notes yet.</b><br>Open a class, select any text, and tap <b>Add to notes</b>. You can also tap <b>Write a note</b> above to type your own.</div>';
+      return;
+    }
+    if (!shown.length) {
+      list.innerHTML = '<div class="empty">No notes match your search or filters.</div>';
+      return;
+    }
+    const order = CLASSES.map(c => c.id).concat(["general"]);
+    const groups = {};
+    shown.forEach(n => { (groups[n.classId] = groups[n.classId] || []).push(n); });
+    Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(cid => {
+      const g = document.createElement("div"); g.className = "group";
+      const h = document.createElement("h2");
+      h.textContent = cid === "general" ? "General notes" : (byId[cid] ? byId[cid].short : groups[cid][0].classTitle || "Other");
+      const n = document.createElement("span"); n.className = "n"; n.textContent = groups[cid].length + (groups[cid].length === 1 ? " note" : " notes");
+      h.append(" ", n);
+      const cards = document.createElement("div"); cards.className = "cards";
+      groups[cid].forEach(note => cards.appendChild(card(note, q)));
+      g.append(h, cards);
+      list.appendChild(g);
+    });
+  }
+
+  function card(n, q) {
+    const el = document.createElement("div"); el.className = "card" + (n.important ? " important" : "");
+    const quote = document.createElement("div"); quote.className = "quote"; quote.appendChild(highlight(n.text, q));
+    el.appendChild(quote);
+    if (n.comment) {
+      const own = document.createElement("div"); own.className = "own";
+      const b = document.createElement("b"); b.textContent = "My comment: ";
+      own.append(b, highlight(n.comment, q));
+      el.appendChild(own);
+    }
+    const meta = document.createElement("div"); meta.className = "meta";
+    const parts = [n.important ? "★ Important" : "", n.section || "", new Date(n.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })].filter(Boolean);
+    parts.forEach(p => { const s = document.createElement("span"); s.textContent = p; meta.appendChild(s); });
+    el.appendChild(meta);
+
+    const actions = document.createElement("div"); actions.className = "actions";
+    const mk = (label, cls, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn small " + (cls || ""); b.textContent = label; b.addEventListener("click", fn); actions.appendChild(b); return b; };
+    mk(n.important ? "Unmark important" : "Mark important", "", () => store.update(n.id, { important: !n.important }).catch(e => toast(saveError(e))));
+    mk(n.comment ? "Edit comment" : "Add comment", "", () => editComment(el, n));
+    if (byId[n.classId]) {
+      mk("Open in class", "", () => {
+        const h2 = (n.section || "").split(" › ");
+        const anchor = n.classId + "--" + (h2.length > 1 ? slug(h2[0] + "-" + h2[1]) : slug(h2[0] || ""));
+        openClass(n.classId, anchor);
+      });
+    }
+    const del = mk("Delete", "danger", () => {
+      actions.innerHTML = "";
+      const s = document.createElement("span"); s.textContent = "Delete this note?"; s.style.alignSelf = "center"; s.style.fontSize = "0.88rem";
+      actions.appendChild(s);
+      mk("Yes, delete", "danger", () => store.remove(n.id).then(() => toast("Note deleted")).catch(e => toast(saveError(e))));
+      mk("Keep", "", () => renderNotes());
+    });
+    el.appendChild(actions);
+    return el;
+  }
+
+  function editComment(el, n) {
+    const box = document.createElement("div"); box.style.marginTop = "10px"; box.style.display = "grid"; box.style.gap = "8px";
+    const ta = document.createElement("textarea"); ta.id = "comment-" + n.id; ta.value = n.comment || "";
+    ta.placeholder = "Your own explanation, an example, or a memory trick";
+    const row = document.createElement("div"); row.style.display = "flex"; row.style.gap = "6px"; row.style.justifyContent = "flex-end";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn small"; cancel.textContent = "Cancel";
+    const save = document.createElement("button"); save.type = "button"; save.className = "btn small primary"; save.textContent = "Save comment";
+    cancel.addEventListener("click", () => renderNotes());
+    save.addEventListener("click", () => {
+      save.disabled = true;
+      store.update(n.id, { comment: ta.value.trim() }).then(() => toast("Comment saved")).catch(e => { save.disabled = false; toast(saveError(e)); });
+    });
+    row.append(cancel, save);
+    box.append(ta, row);
+    el.querySelector(".actions").replaceWith(box);
+    ta.focus();
+  }
+
+  $("search").addEventListener("input", renderNotes);
+  $("filter-class").addEventListener("change", renderNotes);
+  $("filter-important").addEventListener("change", renderNotes);
+
+  $("btn-compose").addEventListener("click", () => {
+    $("compose").hidden = false; $("compose-class").value = currentClass; $("compose-text").focus();
+  });
+  $("compose-cancel").addEventListener("click", () => { $("compose").hidden = true; $("compose-text").value = ""; });
+  $("compose").addEventListener("submit", async e => {
+    e.preventDefault();
+    const text = $("compose-text").value.trim();
+    if (!text) { toast("Type your note first."); return; }
+    if (!store) return;
+    const cid = $("compose-class").value;
+    try {
+      await store.add({ text, classId: cid, classTitle: cid === "general" ? "General" : byId[cid].short, section: "My own note", comment: "", important: $("compose-important").checked, createdAt: Date.now() });
+      $("compose-text").value = ""; $("compose-important").checked = false; $("compose").hidden = true;
+      toast("Note saved");
+    } catch (err) { toast(saveError(err)); }
+  });
+
+  // ---------- Tabs, toast ----------
+  function showView(v) {
+    $("view-read").hidden = v !== "read";
+    $("view-notes").hidden = v !== "notes";
+    $("tab-read").setAttribute("aria-selected", v === "read");
+    $("tab-notes").setAttribute("aria-selected", v === "notes");
+    if (v === "notes") { clearSelection(); renderNotes(); }
+  }
+  $("tab-read").addEventListener("click", () => showView("read"));
+  $("tab-notes").addEventListener("click", () => { showView("notes"); window.scrollTo(0, 0); });
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+  }
+
+  buildClassPickers();
+  let startClass = CLASSES[0].id;
+  try { const saved = localStorage.getItem("law-study-desk-class"); if (saved && byId[saved]) startClass = saved; } catch (e) {}
+  openClass(startClass);
+  const origOpen = openClass;
+  openClass = function (id, anchor) { try { localStorage.setItem("law-study-desk-class", id); } catch (e) {} origOpen(id, anchor); };
+  connect();
+})();
+</script>
