@@ -37,6 +37,34 @@ The formal expression of an adjudication that **conclusively determines the righ
 
 **Not a decree:** an order from which an appeal lies as from an order, and dismissal for default.
 
+### Clarification: "an order from which an appeal lies as from an order"
+**Where it is:** CPC **S.2(2)**, the exclusion clause. A decree "shall not include **(a)** any adjudication from which an appeal lies as an appeal from an order, or **(b)** any order of dismissal for default."
+
+**Meaning:** some decisions look final, but the CPC gives them their own appeal route as *orders*. Because they have that separate route, they are **not decrees**, even if they end the matter.
+
+| | Appeal from a decree | Appeal from an order |
+|---|---|---|
+| Provision | **S.96** (first appeal), **S.100** (second appeal) | **S.104** and **O.43 R.1** (a closed list) |
+| Second appeal? | Yes, on a substantial question of law (**S.100**) | **No**: **S.104(2)** bars a second appeal from an appellate order |
+| Time limit | Limitation Act **Art.116**: 90 days to the High Court, 30 days to any other court | Same, **Art.116** |
+
+**Common appealable orders under O.43 R.1:**
+- **(a)** returning a plaint under **O.7 R.10** (wrong court)
+- **(c)** rejecting an application under **O.9 R.9** to restore a suit dismissed for default
+- **(d)** rejecting an application under **O.9 R.13** to set aside an ex parte decree
+- **(r)** granting or refusing a temporary injunction under **O.39 R.1, R.2, R.2A, R.4, R.10**
+- **(s)** appointing a receiver under **O.40 R.1, R.4**
+
+**Orders not in that list** cannot be appealed separately. Under **S.105**, an error in such an order can be raised in the appeal against the final decree.
+
+| Decision | Status | Remedy |
+|---|---|---|
+| **Rejection** of plaint (**O.7 R.11**) | **Deemed decree** (included in S.2(2)) | First appeal under **S.96** |
+| **Return** of plaint (**O.7 R.10**) | **Appealable order** (excluded from S.2(2)) | Appeal under **O.43 R.1(a)** |
+| Dismissal for default (**O.9 R.8**) | Neither a decree nor an appealable order | Restoration application under **O.9 R.9**. If that is rejected, appeal under **O.43 R.1(c)** |
+
+> **Trick:** "If the CPC gives it a ticket in **O.43**, it travels as an **order**, never as a decree." Rejection = decree. Return = order.
+
 ### 2. Judgment, Order and the parties
 | Term | Section | Meaning |
 |---|---|---|
