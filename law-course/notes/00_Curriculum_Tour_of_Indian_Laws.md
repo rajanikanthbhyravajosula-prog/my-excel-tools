@@ -168,8 +168,14 @@ The order is chosen so that each subject builds on the previous one, starting wi
 
 | No. | Subject | Classes | Key focus |
 |---|---|---|---|
+| **Phase 0** | **Foundations (start here, as a fresher)** | | |
+| F1 | Introduction to Law and the Indian Legal System | 1 | What law is, types of law, sources, courts, legal terms, how to read a bare Act and a citation |
+| F2 | Legal Language and Latin Maxims | 1 | The 40 maxims and terms used daily in courts |
+| F3 | Basics of Jurisprudence | 1 | Rights and duties, ownership, possession, persons, liability |
+| F4 | Constitution: the Basics | 1 | Preamble, structure, fundamental rights, writs at a glance |
+| F5 | Interpretation of Statutes and Legal Research | 1 | Rules of interpretation, the General Clauses Act, finding cases online |
 | **Phase 1** | **Civil practice core** | | |
-| 1 | Code of Civil Procedure, 1908 | 2 (done) | Jurisdiction, pleadings, injunctions, appeals, execution |
+| 1 | Code of Civil Procedure, 1908 | 2 (done; revise after Phase 0) | Jurisdiction, pleadings, injunctions, appeals, execution |
 | 2 | Limitation Act, 1963 | 1 | Time limits, condonation of delay (S.5), acknowledgment (S.18) |
 | 3 | Indian Contract Act, 1872 | 2 | Offer, consideration, void contracts, breach, damages |
 | 4 | Specific Relief Act, 1963 (2018 amendment) | 1 | Specific performance, injunctions, declarations |
@@ -198,7 +204,7 @@ The order is chosen so that each subject builds on the previous one, starting wi
 | 22 | Drafting, Pleading and Conveyancing | 3 | Model plaint, written statement, bail petition, sale deed, legal notice |
 | 23 | AIBE revision and mock tests | 2 | Practice with past-paper style questions |
 
-> **Total: about 35 classes.** Each class comes with its own PDF: the lesson, landmark and recent cases, memory tricks, a time-limit chart where relevant, and a test.
+> **Total: about 40 classes.** Each class comes with its own PDF: the lesson, landmark and recent cases, memory tricks, a time-limit chart where relevant, and a test.
 
 ## Part 5: How Each Class Works
 1. **Lesson**: the important sections explained simply, with examples from your own business.
