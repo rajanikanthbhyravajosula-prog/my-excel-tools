@@ -1,0 +1,97 @@
+{
+  "classId": "f1-introduction",
+  "title": "Class F1 Test: Introduction to Law",
+  "questions": [
+    {"id": "q1", "type": "written", "marks": 1,
+     "q": "Which Article of the Constitution defines \"law\", and what does it include?",
+     "model": "Article 13(3)(a). \"Law\" includes any Ordinance, order, bye-law, rule, regulation, notification, custom or usage having the force of law in the territory of India.",
+     "points": [
+       {"t": "Article 13(3)(a)", "m": 0.5},
+       {"t": "Lists what it includes: ordinance, order, bye-law, rule, regulation, notification, custom or usage (at least three)", "m": 0.5}
+     ]},
+    {"id": "q2", "type": "written", "marks": 1,
+     "q": "What is the standard of proof in a criminal case, and which BSA section defines \"proved\"?",
+     "model": "Proof beyond reasonable doubt. \"Proved\" is defined in Bharatiya Sakshya Adhiniyam, 2023, S.2(1)(j) (old Evidence Act S.3).",
+     "points": [
+       {"t": "Beyond reasonable doubt", "m": 0.5},
+       {"t": "BSA S.2(1)(j) (old Evidence Act S.3 also acceptable)", "m": 0.5}
+     ]},
+    {"id": "q3", "type": "written", "marks": 1,
+     "q": "Which Article makes Supreme Court decisions binding on all courts in India?",
+     "model": "Article 141: the law declared by the Supreme Court is binding on all courts within the territory of India.",
+     "points": [{"t": "Article 141", "m": 1}]},
+    {"id": "q4", "type": "written", "marks": 1,
+     "q": "Give one example each of substantive and procedural law, with a section from each.",
+     "model": "Substantive: Indian Contract Act, 1872 (e.g. S.2(h) defines contract) or BNS (e.g. S.303 theft). Procedural: CPC (e.g. S.26, suit instituted by plaint) or BNSS (e.g. S.173, FIR) or the Limitation Act.",
+     "points": [
+       {"t": "A correct substantive law with a valid section", "m": 0.5},
+       {"t": "A correct procedural law with a valid section", "m": 0.5}
+     ]},
+    {"id": "q5", "type": "written", "marks": 1,
+     "q": "What is the binding part of a judgment called?",
+     "model": "Ratio decidendi (the reason for the decision). Obiter dicta are not binding.",
+     "points": [{"t": "Ratio decidendi", "m": 1}]},
+    {"id": "q6", "type": "written", "marks": 1,
+     "q": "Which Article provides for the President's assent to a Bill?",
+     "model": "Article 111 (assent to Bills passed by Parliament). For State Bills, the Governor's assent is under Article 200.",
+     "points": [{"t": "Article 111", "m": 1}]},
+    {"id": "q7", "type": "written", "marks": 1,
+     "q": "What does a proviso begin with? Give the example from the NI Act.",
+     "model": "A proviso begins with \"Provided that\" and creates an exception or condition to the main rule. Example: the proviso to NI Act S.138, clauses (a)–(c): the cheque must be presented within its validity, a demand notice must be sent within 30 days of the bank's return memo, and the drawer must have failed to pay within 15 days of receiving the notice.",
+     "points": [
+       {"t": "\"Provided that\", and says it is an exception or condition", "m": 0.5},
+       {"t": "NI Act S.138 proviso (a)–(c) with at least one condition stated", "m": 0.5}
+     ]},
+    {"id": "q8", "type": "written", "marks": 1,
+     "q": "Under which CPC provision is a vakalatnama filed?",
+     "model": "CPC Order 3 Rule 4 (appointment of a pleader by a document in writing signed by the party).",
+     "points": [{"t": "O.3 R.4 CPC", "m": 1}]},
+    {"id": "q9", "type": "written", "marks": 1,
+     "q": "In AIR 1978 SC 597, what does \"597\" stand for?",
+     "model": "The page number in the 1978 volume of the All India Reporter (Supreme Court section) where the judgment (Maneka Gandhi v. Union of India) begins.",
+     "points": [{"t": "Page number where the judgment begins", "m": 1}]},
+    {"id": "q10", "type": "written", "marks": 1,
+     "q": "Translate Audi alteram partem, and name one Article it is linked to.",
+     "model": "\"Hear the other side\": no one should be condemned unheard. It is a principle of natural justice read into Article 14 and Article 21 (Maneka Gandhi v. Union of India, 1978).",
+     "points": [
+       {"t": "Hear the other side", "m": 0.5},
+       {"t": "Article 14 or Article 21", "m": 0.5}
+     ]},
+    {"id": "q11", "type": "written", "marks": 3,
+     "q": "Give four differences between civil and criminal law, citing the provision for how each type of case starts.",
+     "model": "(1) Purpose: civil law gives a remedy or compensation; criminal law punishes wrongs against society. (2) Parties: plaintiff v. defendant; State v. accused (or complainant v. accused). (3) Standard of proof: preponderance of probabilities; beyond reasonable doubt (meaning of 'proved': BSA S.2(1)(j); burden: BSA S.104). (4) Result: a decree (CPC S.2(2)) for money, possession, injunction; conviction and sentence (BNS S.4) or acquittal. How each starts: a civil suit is instituted by presenting a plaint (CPC S.26, O.7); a criminal case starts with an FIR (BNSS S.173, old CrPC S.154) or a complaint to a Magistrate (BNSS S.2(1)(h), S.223).",
+     "points": [
+       {"t": "Difference 1 (e.g. purpose: remedy vs punishment)", "m": 0.5},
+       {"t": "Difference 2 (e.g. parties / who starts the case)", "m": 0.5},
+       {"t": "Difference 3 (e.g. standard of proof)", "m": 0.5},
+       {"t": "Difference 4 (e.g. result: decree vs sentence)", "m": 0.5},
+       {"t": "Civil case starts by plaint: CPC S.26 / O.7", "m": 0.5},
+       {"t": "Criminal case starts by FIR (BNSS S.173) or complaint (BNSS S.223 / S.2(1)(h))", "m": 0.5}
+     ]},
+    {"id": "q12", "type": "written", "marks": 3,
+     "q": "Explain ratio decidendi and obiter dicta, and the Article that makes the ratio binding.",
+     "model": "Ratio decidendi is the legal principle or reason on which a case is decided; it is the binding part of a precedent. Obiter dicta are observations made by the judge in passing that are not necessary for the decision; they are only persuasive, though Supreme Court obiter carries great weight. Article 141 makes the law declared by the Supreme Court (its ratio) binding on all courts in India. Trick: the ratio is the root, the obiter is the ornament.",
+     "points": [
+       {"t": "Ratio decidendi correctly explained as the binding reason for the decision", "m": 1},
+       {"t": "Obiter dicta correctly explained as remarks in passing, only persuasive", "m": 1},
+       {"t": "Article 141", "m": 0.75},
+       {"t": "Memory trick or a clear example", "m": 0.25}
+     ]},
+    {"id": "q13a", "type": "written", "marks": 2,
+     "q": "Practical problem. At a wedding in Samriddhi Hall, a guest slips on a wet floor and breaks a leg. In the same week, a supplier steals Rs 50,000 of cooking vessels from the hall.\n(a) Which is mainly a civil matter and which is criminal?",
+     "model": "The slip is mainly a civil matter: a claim for compensation for negligence (the law of torts, occupier's duty of care), possibly also before a Consumer Commission for deficiency in service (CPA S.2(11)). (A rash or negligent act causing grievous hurt can also be an offence under BNS S.125(b), but the main remedy is civil compensation.) The theft is a criminal matter: theft under BNS S.303 (old IPC S.378/379).",
+     "points": [
+       {"t": "Slip = civil (negligence / compensation)", "m": 1},
+       {"t": "Theft = criminal (theft under BNS S.303)", "m": 1}
+     ]},
+    {"id": "q13b", "type": "written", "marks": 2,
+     "q": "(b) Name the parties in each case, with the section under which the criminal case would be registered and the offence charged.",
+     "model": "Slip: the guest is the plaintiff (in a civil suit) or complainant (before a Consumer Commission); the hall owner is the defendant or opposite party. Theft: the case is State of Andhra Pradesh v. the supplier. The hall owner is the informant or complainant, and the supplier is the accused. The FIR is registered under BNSS S.173 (old CrPC S.154), and the offence charged is theft: defined in BNS S.303(1), punishable under BNS S.303(2) (old IPC S.378/379).",
+     "points": [
+       {"t": "Slip parties: guest as plaintiff/complainant v. hall owner as defendant/opposite party", "m": 0.5},
+       {"t": "Theft parties: State v. supplier (accused), hall owner as informant/complainant", "m": 0.5},
+       {"t": "FIR under BNSS S.173", "m": 0.5},
+       {"t": "Offence: theft, BNS S.303", "m": 0.5}
+     ]}
+  ]
+}

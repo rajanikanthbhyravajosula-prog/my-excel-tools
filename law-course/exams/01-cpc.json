@@ -1,0 +1,92 @@
+{
+  "classId": "01-cpc",
+  "title": "CPC Class 1 Test (Day 1 Exam)",
+  "questions": [
+    {"id": "q1", "type": "mcq", "marks": 1,
+     "q": "The CPC has how many Sections and Orders?",
+     "options": ["158 Sections, 51 Orders", "151 Sections, 58 Orders", "160 Sections, 50 Orders", "158 Sections, 48 Orders"],
+     "answer": 0,
+     "explain": "The CPC has 158 Sections. The 51 Orders are in the First Schedule (S.121 gives the Rules the same effect as if enacted in the body of the Code)."},
+    {"id": "q2", "type": "mcq", "marks": 1,
+     "q": "Who can amend the Rules in the First Schedule for their state?",
+     "options": ["Parliament only", "State Legislature", "High Court", "Supreme Court"],
+     "answer": 2,
+     "explain": "CPC S.122 lets High Courts annul, alter or add to the Rules in the First Schedule for courts under their superintendence. Parliament can also amend them, but the question asks about state-level amendment."},
+    {"id": "q3", "type": "mcq", "marks": 1,
+     "q": "Rejection of a plaint under Order VII Rule 11 is:",
+     "options": ["an order", "a deemed decree", "a judgment", "none of these"],
+     "answer": 1,
+     "explain": "CPC S.2(2) expressly includes the rejection of a plaint in the definition of decree, so it is a deemed decree, appealable under S.96."},
+    {"id": "q4", "type": "mcq", "marks": 1,
+     "q": "Dismissal of a suit for default is:",
+     "options": ["a decree", "a preliminary decree", "not a decree", "a final decree"],
+     "answer": 2,
+     "explain": "CPC S.2(2)(b) excludes any order of dismissal for default. The remedy is restoration under O.9 R.9 (dismissal under O.9 R.8)."},
+    {"id": "q5", "type": "mcq", "marks": 1,
+     "q": "Mesne profits do NOT include:",
+     "options": ["profits actually received", "interest on such profits", "profits due to improvements made by the person in wrongful possession", "profits that could have been received with ordinary diligence"],
+     "answer": 2,
+     "explain": "CPC S.2(12): mesne profits include interest but do not include profits due to improvements made by the person in wrongful possession."},
+    {"id": "q6", "type": "mcq", "marks": 1,
+     "q": "Under the amended Order VIII Rule 1, the maximum time for filing a written statement in an ordinary civil suit is:",
+     "options": ["30 days", "60 days", "90 days", "120 days"],
+     "answer": 2,
+     "explain": "O.8 R.1: 30 days, extendable by the court for reasons recorded up to 90 days. For ordinary suits this limit is directory (Kailash v. Nanhku, 2005). For commercial suits it is 120 days and mandatory."},
+    {"id": "q7", "type": "written", "marks": 3,
+     "q": "Distinguish between Judgment, Decree and Order, with one example of each.",
+     "model": "Judgment (CPC S.2(9)) is the statement given by the judge of the grounds of a decree or order: the reasoning. Decree (S.2(2)) is the formal expression of an adjudication which, so far as the court is concerned, conclusively determines the rights of the parties on all or any of the matters in controversy in the suit; it may be preliminary or final. Order (S.2(14)) is the formal expression of any decision of a civil court which is not a decree. Examples: the judge's reasons for allowing a recovery suit (judgment); the decree directing the defendant to pay Rs 2,00,000 with interest (decree); an order granting a temporary injunction under O.39 R.1 or returning a plaint under O.7 R.10 (order). Key differences: a decree arises only in a suit and conclusively determines rights; an order can arise in a suit or other proceeding and need not be conclusive; a first appeal lies from every decree (S.96) unless barred, but only from orders listed in S.104 and O.43 R.1; a second appeal lies from decrees (S.100) but not from appellate orders (S.104(2)).",
+     "points": [
+       {"t": "Judgment correctly defined as the statement of grounds (reasons), citing S.2(9)", "m": 0.75},
+       {"t": "Decree correctly defined (formal expression, conclusively determines rights, in a suit), citing S.2(2)", "m": 0.75},
+       {"t": "Order correctly defined as a decision that is not a decree, citing S.2(14)", "m": 0.5},
+       {"t": "At least one valid point of difference, e.g. appealability (S.96/S.100 vs S.104/O.43) or conclusiveness", "m": 0.5},
+       {"t": "A correct example of each of the three", "m": 0.5}
+     ]},
+    {"id": "q8", "type": "written", "marks": 3,
+     "q": "What are preliminary and final decrees? Can a suit have more than one preliminary decree?",
+     "model": "Under the Explanation to CPC S.2(2), a decree is preliminary when further proceedings have to be taken before the suit can be completely disposed of, and final when the adjudication completely disposes of the suit. Examples of preliminary decrees: partition (O.20 R.18), accounts between principal and agent or partners (O.20 R.15–17), mortgage suits (O.34), possession with an inquiry into mesne profits (O.20 R.12). The final decree follows after those further proceedings, e.g. after the commissioner divides the property by metes and bounds. A decree can also be partly preliminary and partly final. Yes, more than one preliminary decree can be passed in the same suit when circumstances change, e.g. the death of a party changes the shares in a partition suit: Phoolchand v. Gopal Lal (1967, SC).",
+     "points": [
+       {"t": "Preliminary decree defined: rights decided, further proceedings needed (Explanation to S.2(2))", "m": 0.75},
+       {"t": "Final decree defined: completely disposes of the suit", "m": 0.75},
+       {"t": "A correct example such as partition (O.20 R.18), accounts or mortgage", "m": 0.5},
+       {"t": "Answers yes, more than one preliminary decree is possible", "m": 0.5},
+       {"t": "Cites Phoolchand v. Gopal Lal (1967) or gives a valid reason such as a change in shares on death", "m": 0.5}
+     ]},
+    {"id": "q9", "type": "written", "marks": 3,
+     "q": "Explain express bar and implied bar under Section 9, with one example of each.",
+     "model": "CPC S.9 gives civil courts jurisdiction over all suits of a civil nature except those whose cognizance is expressly or impliedly barred. Express bar: a statute itself says civil courts shall not entertain the matter, e.g. SARFAESI Act S.34 (matters within the DRT's powers), or the bars in many revenue and tenancy laws. Implied bar: no express words, but the statute creates a special right with its own remedy and forum, or public policy excludes the civil court, e.g. rights created by the Industrial Disputes Act are enforceable only through its machinery (Premier Automobiles v. Kamlakar Shantaram Wadke, 1976). Principle: exclusion is not readily inferred and there is a presumption in favour of civil court jurisdiction; even where barred, the civil court can examine whether the tribunal acted without jurisdiction or violated fundamental principles of judicial procedure (Dhulabhai v. State of M.P., 1968).",
+     "points": [
+       {"t": "Express bar explained: the statute expressly excludes civil courts", "m": 0.75},
+       {"t": "Correct example of an express bar, e.g. SARFAESI S.34", "m": 0.5},
+       {"t": "Implied bar explained: special right plus special remedy or forum, or public policy", "m": 0.75},
+       {"t": "Correct example of an implied bar, e.g. Industrial Disputes Act / Premier Automobiles", "m": 0.5},
+       {"t": "Mentions the presumption in favour of civil court jurisdiction or Dhulabhai (1968)", "m": 0.5}
+     ]},
+    {"id": "q10a", "type": "written", "marks": 2,
+     "q": "Practical problem. A customer books Samriddhi Hall at SLNS Vaibhavam for a wedding and pays Rs 2,00,000 as advance. Two weeks before the event the customer cancels and sues in the civil court at Nandyal for a full refund. Your booking agreement says \"all disputes shall be decided only by the Consumer Commission.\"\n(a) Is this a \"suit of a civil nature\" under Section 9? Give your reasons.",
+     "model": "Yes. The claim is for refund of money paid under a contract (the booking agreement). The right to recover money under a contract is a civil right, so the suit is of a civil nature under CPC S.9. No statute expressly or impliedly bars a civil court from deciding a contractual money claim; the Consumer Protection Act, 2019 gives an additional remedy, not an exclusive one (CPA S.100: the Act is in addition to, not in derogation of, other laws). The cause of action arose at Nandyal, where the contract was made and to be performed, so the Nandyal court has territorial jurisdiction (S.20), and a claim of Rs 2,00,000 lies in the lowest competent court (S.15).",
+     "points": [
+       {"t": "Concludes yes, it is a suit of a civil nature under S.9", "m": 0.5},
+       {"t": "Reason: it enforces a contractual or civil right to money", "m": 0.5},
+       {"t": "No express or implied bar; the consumer remedy is additional, not exclusive (CPA S.100)", "m": 0.5},
+       {"t": "Mentions territorial or pecuniary jurisdiction (S.20 / S.15) or another relevant CPC provision", "m": 0.5}
+     ]},
+    {"id": "q10b", "type": "written", "marks": 2,
+     "q": "(b) Can a private agreement oust the jurisdiction of a civil court? What principle applies?",
+     "model": "No. Under Indian Contract Act S.28, an agreement that absolutely restricts a party from enforcing their rights through the usual legal proceedings in ordinary tribunals is void to that extent. Parties cannot confer jurisdiction on a court that has none, or take away jurisdiction completely. They can, however, choose one of several courts that already have jurisdiction (ABC Laminart v. A.P. Agencies, 1989), and an agreement to refer disputes to arbitration is saved by Exception 1 to S.28. A clause sending disputes 'only' to a Consumer Commission does not bar a civil suit, because a consumer may choose either forum; the clause cannot oust the civil court.",
+     "points": [
+       {"t": "Answers no: a private agreement cannot completely oust civil court jurisdiction", "m": 0.5},
+       {"t": "Cites Indian Contract Act S.28 (agreement in restraint of legal proceedings is void)", "m": 0.75},
+       {"t": "Notes the exceptions: choosing one of several competent courts (ABC Laminart) or arbitration (Exception 1)", "m": 0.75}
+     ]},
+    {"id": "q10c", "type": "written", "marks": 2,
+     "q": "(c) As the hall owner's advocate, what defence would you raise?",
+     "model": "Since the jurisdiction objection is weak, defend on the merits in the written statement (O.8 R.1): (1) the customer, not the hall, broke the contract by cancelling two weeks before the event; (2) the booking terms provide for cancellation charges or forfeiture of the advance, and the hall is entitled to reasonable compensation for the breach under Contract Act S.73–74 (forfeiture of a reasonable earnest amount is allowed; a larger sum must be justified by actual loss, Kailash Nath Associates v. DDA, 2015); (3) show the actual loss: the date was blocked in the wedding season, other enquiries were refused, and the hall could not be rebooked at short notice, while showing efforts to mitigate the loss; (4) offer to refund only the balance after lawful deductions, or claim the loss by set-off or counter-claim (O.8 R.6 and R.6A); (5) produce the signed booking terms, receipts and the cancellation message as evidence.",
+     "points": [
+       {"t": "Defends on the merits: the customer cancelled, so the customer is in breach", "m": 0.5},
+       {"t": "Relies on the cancellation or forfeiture terms of the booking agreement", "m": 0.5},
+       {"t": "Cites Contract Act S.73 or S.74 (compensation / reasonable forfeiture)", "m": 0.5},
+       {"t": "Mentions proof of loss or mitigation, or set-off / counter-claim under O.8 R.6 / R.6A", "m": 0.5}
+     ]}
+  ]
+}

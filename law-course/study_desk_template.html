@@ -134,6 +134,48 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
 .empty b { color: var(--ink); }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; }
 
+/* Exams */
+.guide { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; }
+.guide summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.guide .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 12px; font-size: 0.92rem; }
+.guide .cols > div { min-width: 0; }
+.guide h3 { font-size: 0.95rem; margin: 0 0 6px; }
+.guide ol, .guide ul { margin: 0; padding-left: 1.2em; }
+.guide table { border-collapse: collapse; font-size: 0.86rem; width: 100%; }
+.guide td { border-top: 1px solid var(--line); padding: 4px 6px; font-variant-numeric: tabular-nums; }
+.exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.exam-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.exam-card h2 { font-family: var(--font-read); font-size: 1.1rem; margin: 0; }
+.exam-card .facts { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; font-variant-numeric: tabular-nums; }
+.exam-card .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.band { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
+.band.b5 { background: #DDF3E4; color: #14532D; } .band.b4 { background: #E3F0FB; color: #12406B; }
+.band.b3 { background: #EEF0D8; color: #4A4F12; } .band.b2 { background: #FFF1D6; color: #6B4500; }
+.band.b1 { background: #FCE4E2; color: #7F1D1D; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; min-width: 0; }
+.q .qhead { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+.q .qtext { font-family: var(--font-read); font-size: 1.02rem; white-space: pre-wrap; margin: 0 0 10px; }
+.q .qmarks { font-size: 0.8rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.q textarea { width: 100%; min-height: 110px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); resize: vertical; font-family: var(--font-read); font-size: 1rem; line-height: 1.5; }
+.q .opt { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border-radius: 6px; }
+.q .opt:hover { background: var(--accent-soft); }
+.q .opt.right { background: #DDF3E4; color: #14532D; } .q .opt.wrong { background: #FCE4E2; color: #7F1D1D; }
+.q .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 12px 0 4px; }
+.q .yours { white-space: pre-wrap; font-family: var(--font-read); background: var(--bg); border-radius: 6px; padding: 8px 12px; overflow-wrap: anywhere; }
+.q .model { white-space: pre-wrap; font-family: var(--font-read); background: var(--callout); border-radius: 6px; padding: 8px 12px; overflow-wrap: anywhere; }
+.q .feedback { background: var(--accent-soft); border-radius: 6px; padding: 8px 12px; font-size: 0.92rem; }
+.rubric { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.rubric td { border-top: 1px solid var(--line); padding: 6px 4px; vertical-align: middle; }
+.rubric td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rubric select { padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.scorebar { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+.scorebar .big { font-family: var(--font-read); font-size: 2rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.scorebar .sub { color: var(--muted); font-size: 0.9rem; }
+.history { width: 100%; border-collapse: collapse; font-size: 0.9rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.history th { text-align: left; font-weight: 600; padding: 8px 10px; background: var(--accent-soft); }
+.history td { padding: 8px 10px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.status-line { font-size: 0.9rem; color: var(--muted); margin: 8px 0; }
+
 @media (max-width: 860px) {
   .read-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
   nav.classes { display: none; }
@@ -150,6 +192,7 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
   <div class="tabs" role="tablist">
     <button id="tab-read" role="tab" aria-selected="true">Classes</button>
     <button id="tab-notes" role="tab" aria-selected="false">My Notes <span class="count" id="note-count">(0)</span></button>
+    <button id="tab-exams" role="tab" aria-selected="false">Exams</button>
   </div>
 </header>
 
@@ -190,6 +233,60 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     </div>
     <div id="notes-list"></div>
   </section>
+
+  <section id="view-exams" hidden>
+    <div id="exams-home">
+      <div class="notes-head">
+        <h1>Exams</h1>
+        <span class="store-status" id="exam-status"></span>
+      </div>
+      <details class="guide" id="guide" open>
+        <summary>How to answer and how marks are given</summary>
+        <div class="cols">
+          <div>
+            <h3>One-line answers (1 mark)</h3>
+            <ul>
+              <li>Give the answer <b>and</b> its section or Article.</li>
+              <li>Example: "90 days, CPC S.148A(5)".</li>
+              <li>The section usually carries part of the mark.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Short notes (3–4 marks)</h3>
+            <ol>
+              <li><b>Define</b> it, citing the section.</li>
+              <li>List the <b>essentials</b> or conditions.</li>
+              <li>Cite one <b>case</b>.</li>
+              <li>Give an <b>example</b>.</li>
+              <li>One-line <b>conclusion</b>.</li>
+            </ol>
+          </div>
+          <div>
+            <h3>Problems (IRAC method)</h3>
+            <ol>
+              <li><b>Issue</b>: the legal question.</li>
+              <li><b>Rule</b>: the sections and cases.</li>
+              <li><b>Application</b>: apply them to the facts.</li>
+              <li><b>Conclusion</b>: your answer.</li>
+            </ol>
+          </div>
+          <div>
+            <h3>How marks are given</h3>
+            <p style="margin:0 0 6px">Each written answer has a marking scheme of key points, each worth part of the marks. Multiple-choice questions are marked instantly. Written answers are marked by Claude against the model answer, and you can adjust any mark.</p>
+            <table>
+              <tr><td>75% and above</td><td><span class="band b5">Distinction</span></td></tr>
+              <tr><td>60–74%</td><td><span class="band b4">First class</span></td></tr>
+              <tr><td>50–59%</td><td><span class="band b3">Second class</span></td></tr>
+              <tr><td>40–49%</td><td><span class="band b2">Pass</span></td></tr>
+              <tr><td>Below 40%</td><td><span class="band b1">Revise and retry</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </details>
+      <div class="exam-grid" id="exam-grid"></div>
+    </div>
+    <div id="exam-run" hidden></div>
+  </section>
 </main>
 
 <div class="selbar" id="selbar" hidden>
@@ -203,6 +300,7 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
 <div class="toast" id="toast" hidden></div>
 
 <script type="application/json" id="classes-data">/*__CLASSES__*/</script>
+<script type="application/json" id="exams-data">/*__EXAMS__*/</script>
 <script>
 (function () {
   const CLASSES = JSON.parse(document.getElementById("classes-data").textContent);
@@ -293,11 +391,13 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     };
     $("store-status").textContent = reason || "Saved in this browser only";
     renderAll();
+    useLocalAttempts();
   }
 
   async function connect() {
     const claude = window.claude;
     if (!claude || !claude.use) { useLocal("Saved in this browser only"); return; }
+    claude.use("sample").then(s => { sampleFn = s; }, () => {});
     try {
       const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
       const uid = user ? await user.id() : null;
@@ -314,6 +414,17 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
         notes = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
         renderAll();
       }, () => useLocal("Your account storage is unavailable right now. Notes are saved in this browser only."));
+      const acol = db.doc("data/users/" + uid + "/profile").collection("attempts");
+      attemptStore = {
+        async add(a) { const ref = acol.doc(); await ref.set(a); return ref.id; },
+        async update(id, patch) { await acol.doc(id).update(patch); },
+      };
+      examStatus = "Results saved privately to your account";
+      renderExamHome();
+      acol.orderBy("createdAt", "desc").limit(500).onSnapshot(snap => {
+        attempts = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderExamHome();
+      }, () => {});
     } catch (e) {
       useLocal("Saved in this browser only");
     }
@@ -532,16 +643,366 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     } catch (err) { toast(saveError(err)); }
   });
 
+  // ---------- Exams ----------
+  const EXAMS = JSON.parse(document.getElementById("exams-data").textContent);
+  let attempts = [];
+  let attemptStore = null;
+  let sampleFn = null;
+  let examStatus = "";
+  const LS_ATT = "law-study-desk-attempts";
+
+  function useLocalAttempts() {
+    try { attempts = JSON.parse(localStorage.getItem(LS_ATT) || "[]"); } catch (e) { attempts = []; }
+    const persist = () => { try { localStorage.setItem(LS_ATT, JSON.stringify(attempts)); } catch (e) {} };
+    attemptStore = {
+      async add(a) { a.id = "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); attempts.unshift(a); persist(); renderExamHome(); return a.id; },
+      async update(id, patch) { attempts = attempts.map(x => x.id === id ? Object.assign({}, x, patch) : x); persist(); renderExamHome(); },
+    };
+    examStatus = "Results saved in this browser only";
+    renderExamHome();
+  }
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function btn(label, cls, fn) { const b = el("button", "btn " + (cls || ""), label); b.type = "button"; b.addEventListener("click", fn); return b; }
+  const fmt = n => String(Math.round(n * 100) / 100);
+  const maxOf = ex => ex.questions.reduce((s, q) => s + q.marks, 0);
+  const clampQ = (v, m) => Math.min(m, Math.max(0, Math.round(v * 4) / 4));
+  function band(pct) {
+    if (pct >= 75) return ["Distinction", "b5"];
+    if (pct >= 60) return ["First class", "b4"];
+    if (pct >= 50) return ["Second class", "b3"];
+    if (pct >= 40) return ["Pass", "b2"];
+    return ["Revise and retry", "b1"];
+  }
+  function bandChip(pct) { const [t, c] = band(pct); return el("span", "band " + c, t); }
+  function scoreOf(ex, awards) {
+    return ex.questions.reduce((s, q) => {
+      const a = awards[q.id];
+      return s + (Array.isArray(a) ? a.reduce((x, y) => x + (Number(y) || 0), 0) : (Number(a) || 0));
+    }, 0);
+  }
+  const examList = () => CLASSES.filter(c => EXAMS[c.id]).map(c => EXAMS[c.id]);
+  const dateStr = t => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+  function showExamHome() {
+    $("exam-run").hidden = true; $("exam-run").innerHTML = "";
+    $("exams-home").hidden = false;
+    renderExamHome();
+    window.scrollTo(0, 0);
+  }
+
+  function renderExamHome() {
+    const grid = $("exam-grid");
+    $("exam-status").textContent = examStatus;
+    grid.innerHTML = "";
+    examList().forEach(ex => {
+      const mine = attempts.filter(a => a.examId === ex.classId);
+      const max = maxOf(ex);
+      const card = el("div", "exam-card");
+      card.appendChild(el("h2", null, ex.title));
+      const facts = el("div", "facts");
+      facts.append(el("span", null, ex.questions.length + " questions"), el("span", null, max + " marks"),
+        el("span", null, mine.length ? mine.length + (mine.length === 1 ? " attempt" : " attempts") : "Not attempted yet"));
+      card.appendChild(facts);
+      if (mine.length) {
+        const best = Math.max(...mine.map(a => a.score / a.max * 100));
+        const last = mine[0].score / mine[0].max * 100;
+        const r = el("div", "facts");
+        const b = el("span", null, "Best: " + Math.round(best) + "% "); b.appendChild(bandChip(best));
+        r.append(b, el("span", null, "Last: " + Math.round(last) + "% on " + dateStr(mine[0].createdAt)));
+        card.appendChild(r);
+      }
+      const row = el("div", "row");
+      row.appendChild(btn(mine.length ? "Take again" : "Start exam", "primary", () => startExam(ex)));
+      if (mine.length) row.appendChild(btn("Past results", "", () => showHistory(ex)));
+      card.appendChild(row);
+      grid.appendChild(card);
+    });
+  }
+
+  function runHeader(title, sub) {
+    const run = $("exam-run");
+    run.innerHTML = "";
+    $("exams-home").hidden = true; run.hidden = false;
+    const head = el("div", "notes-head");
+    head.appendChild(el("h1", null, title));
+    head.appendChild(btn("All exams", "", showExamHome));
+    run.appendChild(head);
+    if (sub) run.appendChild(el("p", "status-line", sub));
+    window.scrollTo(0, 0);
+    return run;
+  }
+
+  function startExam(ex) {
+    const run = runHeader(ex.title, ex.questions.length + " questions · " + maxOf(ex) + " marks. Your answers are kept as a draft on this device until you submit.");
+    const draftKey = "law-study-desk-draft-" + ex.classId;
+    let draft = {};
+    try { draft = JSON.parse(localStorage.getItem(draftKey) || "{}"); } catch (e) {}
+    const form = el("form");
+    ex.questions.forEach((q, i) => {
+      const box = el("div", "q");
+      const head = el("div", "qhead");
+      head.append(el("b", null, "Q" + (i + 1)), el("span", "qmarks", q.marks + (q.marks === 1 ? " mark" : " marks")));
+      box.append(head, el("p", "qtext", q.q));
+      if (q.type === "mcq") {
+        q.options.forEach((o, k) => {
+          const lab = el("label", "opt");
+          const r = el("input"); r.type = "radio"; r.name = ex.classId + "-" + q.id; r.value = k; r.id = "opt-" + ex.classId + "-" + q.id + "-" + k;
+          if (draft[q.id] === k) r.checked = true;
+          lab.append(r, el("span", null, "(" + "abcd"[k] + ") " + o));
+          box.appendChild(lab);
+        });
+      } else {
+        const ta = el("textarea"); ta.id = "ans-" + ex.classId + "-" + q.id; ta.name = q.id;
+        ta.placeholder = q.marks <= 1 ? "Answer in one line, with the section or Article" : "Write your answer. Cite sections and cases.";
+        ta.value = draft[q.id] || "";
+        box.appendChild(ta);
+      }
+      form.appendChild(box);
+    });
+    const collect = () => {
+      const ans = {};
+      ex.questions.forEach(q => {
+        if (q.type === "mcq") {
+          const c = form.querySelector('input[name="' + ex.classId + "-" + q.id + '"]:checked');
+          ans[q.id] = c ? Number(c.value) : null;
+        } else ans[q.id] = form.querySelector("#ans-" + ex.classId + "-" + q.id).value;
+      });
+      return ans;
+    };
+    let draftTimer;
+    form.addEventListener("input", () => {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(() => { try { localStorage.setItem(draftKey, JSON.stringify(collect())); } catch (e) {} }, 400);
+    });
+    const status = el("p", "status-line");
+    const submit = el("button", "btn primary", "Submit and mark"); submit.type = "submit";
+    const foot = el("div"); foot.style.display = "flex"; foot.style.flexWrap = "wrap"; foot.style.gap = "10px"; foot.style.alignItems = "center";
+    foot.append(submit, status);
+    form.appendChild(foot);
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      clearTimeout(draftTimer);
+      submit.disabled = true;
+      const answers = collect();
+      const at = await markExam(ex, answers, status);
+      try { localStorage.removeItem(draftKey); } catch (err) {}
+      showResult(ex, at);
+    });
+    run.appendChild(form);
+  }
+
+  function buildPrompt(qs, answers) {
+    const items = qs.map(q => ({
+      id: q.id, question: q.q, maxMarks: q.marks, modelAnswer: q.model,
+      markingScheme: q.points.map(p => ({ point: p.t, max: p.m })),
+      studentAnswer: answers[q.id],
+    }));
+    return [
+      "You are an examiner for an Indian law course at LLB / AIBE level. Mark each student answer against its marking scheme.",
+      "Rules:",
+      "- For each question, award marks for each marking-scheme point separately, from 0 up to that point's max, in steps of 0.25.",
+      "- Award a point only if the student's answer contains it in substance. Wording need not match the model answer.",
+      "- Old and new section numbers for the same provision are equally acceptable (e.g. IPC S.378/379 = BNS S.303; CrPC S.154 = BNSS S.173; Evidence Act S.3 = BSA S.2(1)(j); Evidence Act S.101 = BSA S.104).",
+      "- Give partial marks where a point is partly right or its section/Article is missing.",
+      "- Do not reward length, or content that is not in the marking scheme. Ignore spelling and grammar.",
+      "- Feedback: 1 to 3 short, plain sentences: what was right, and exactly what was missing (name the missing sections or cases).",
+      "Reply with only JSON in this shape:",
+      '{"results":[{"id":"q7","awards":[0.75,0.5,0,0.5,0.5],"feedback":"..."}]}',
+      "Each awards array must have exactly one number per marking-scheme point, in the same order.",
+      "",
+      "Questions:",
+      JSON.stringify(items, null, 1),
+    ].join("\n");
+  }
+
+  async function aiMark(ex, answers) {
+    const qs = ex.questions.filter(q => q.type === "written" && String(answers[q.id] || "").trim());
+    if (!qs.length) return { awards: {}, feedback: {} };
+    const res = await sampleFn.json(buildPrompt(qs, answers), { modelTier: "default" });
+    const list = res && Array.isArray(res.results) ? res.results : [];
+    const awards = {}, feedback = {};
+    list.forEach(r => {
+      const q = qs.find(x => x.id === String(r.id));
+      if (!q) return;
+      const aw = Array.isArray(r.awards) ? r.awards : [];
+      awards[q.id] = q.points.map((p, k) => clampQ(Number(aw[k]) || 0, p.m));
+      if (r.feedback) feedback[q.id] = String(r.feedback).slice(0, 800);
+    });
+    if (!Object.keys(awards).length) throw { code: "invalid_json" };
+    return { awards, feedback };
+  }
+
+  function markErr(e) {
+    const code = e && e.code;
+    if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared") return "Claude marking is not allowed on this page. Mark your written answers yourself using the marking scheme below.";
+    if (code === "rate_limited") return "Claude is busy right now. Mark your answers yourself below, or use Re-mark with Claude later.";
+    if (code === "session_expired") return "Your session has expired. Sign in again to use Claude marking. You can mark your answers yourself below.";
+    return "Claude could not mark your answers this time. Mark them yourself below, or use Re-mark with Claude.";
+  }
+
+  async function markExam(ex, answers, status) {
+    const awards = {};
+    ex.questions.forEach(q => {
+      awards[q.id] = q.type === "mcq" ? (answers[q.id] === q.answer ? q.marks : 0) : q.points.map(() => 0);
+    });
+    let feedback = {}, markedBy = "self", note = "";
+    const hasWritten = ex.questions.some(q => q.type === "written" && String(answers[q.id] || "").trim());
+    if (hasWritten && sampleFn) {
+      status.textContent = "Claude is marking your written answers. This can take up to a minute…";
+      try {
+        const r = await aiMark(ex, answers);
+        Object.assign(awards, r.awards); feedback = r.feedback; markedBy = "claude";
+      } catch (e) { note = markErr(e); }
+    } else if (hasWritten) {
+      note = "Claude marking is not available here. Mark your written answers yourself using the marking scheme below.";
+    }
+    const at = { examId: ex.classId, title: ex.title, createdAt: Date.now(), answers, awards, feedback, markedBy, score: scoreOf(ex, awards), max: maxOf(ex) };
+    try {
+      if (!attemptStore) throw new Error("not connected");
+      at.id = await attemptStore.add(at);
+    } catch (e) {
+      note = (note ? note + " " : "") + "Your result could not be saved, but you can review it below.";
+    }
+    at._note = note;
+    return at;
+  }
+
+  function showResult(ex, at) {
+    const run = runHeader(ex.title + ": Result");
+    const pct = () => at.score / at.max * 100;
+    const bar = el("div", "scorebar");
+    const big = el("div", "big");
+    const pctEl = el("div");
+    const chipHolder = el("div");
+    const sub = el("div", "sub");
+    const paint = () => {
+      big.textContent = fmt(at.score) + " / " + at.max;
+      pctEl.textContent = Math.round(pct()) + "%";
+      chipHolder.innerHTML = ""; chipHolder.appendChild(bandChip(pct()));
+      sub.textContent = dateStr(at.createdAt) + " · " + (at.markedBy === "claude" ? "Written answers marked by Claude. You can adjust any mark." : "Self-marked. Choose the marks for each point.");
+    };
+    paint();
+    bar.append(big, pctEl, chipHolder, sub);
+    const actions = el("div"); actions.style.display = "flex"; actions.style.gap = "8px"; actions.style.flexWrap = "wrap"; actions.style.marginLeft = "auto";
+    const hasWritten = ex.questions.some(q => q.type === "written" && String(at.answers[q.id] || "").trim());
+    if (sampleFn && hasWritten) {
+      const rb = btn(at.markedBy === "claude" ? "Re-mark with Claude" : "Mark with Claude", "", async () => {
+        rb.disabled = true; info.textContent = "Claude is marking your written answers…";
+        try {
+          const r = await aiMark(ex, at.answers);
+          Object.assign(at.awards, r.awards); at.feedback = r.feedback; at.markedBy = "claude";
+          at.score = scoreOf(ex, at.awards);
+          if (at.id) await attemptStore.update(at.id, { awards: at.awards, feedback: at.feedback, markedBy: "claude", score: at.score });
+          showResult(ex, at);
+        } catch (e) { rb.disabled = false; info.textContent = markErr(e); }
+      });
+      actions.appendChild(rb);
+    }
+    actions.appendChild(btn("Take again", "primary", () => startExam(ex)));
+    bar.appendChild(actions);
+    run.appendChild(bar);
+    const info = el("p", "status-line", at._note || "");
+    run.appendChild(info);
+
+    let saveTimer;
+    const persist = () => {
+      at.score = scoreOf(ex, at.awards); paint();
+      if (!at.id) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        attemptStore.update(at.id, { awards: at.awards, score: at.score }).catch(() => toast("Could not save your change. Check your connection."));
+      }, 500);
+    };
+
+    ex.questions.forEach((q, i) => {
+      const box = el("div", "q");
+      const got = Array.isArray(at.awards[q.id]) ? at.awards[q.id].reduce((a, b) => a + b, 0) : (at.awards[q.id] || 0);
+      const head = el("div", "qhead");
+      const gotEl = el("span", "qmarks", fmt(got) + " / " + q.marks);
+      head.append(el("b", null, "Q" + (i + 1)), gotEl);
+      box.append(head, el("p", "qtext", q.q));
+      if (q.type === "mcq") {
+        q.options.forEach((o, k) => {
+          const cls = k === q.answer ? "opt right" : (k === at.answers[q.id] ? "opt wrong" : "opt");
+          const mark = k === q.answer ? "✓ " : (k === at.answers[q.id] ? "✗ " : "");
+          box.appendChild(el("div", cls, mark + "(" + "abcd"[k] + ") " + o));
+        });
+        if (at.answers[q.id] == null) box.appendChild(el("p", "status-line", "Not answered."));
+        box.appendChild(el("div", "label", "Explanation"));
+        box.appendChild(el("div", "feedback", q.explain));
+      } else {
+        box.appendChild(el("div", "label", "Your answer"));
+        box.appendChild(el("div", "yours", String(at.answers[q.id] || "").trim() || "(Not answered)"));
+        if (at.feedback && at.feedback[q.id]) {
+          box.appendChild(el("div", "label", "Examiner's feedback"));
+          box.appendChild(el("div", "feedback", at.feedback[q.id]));
+        }
+        box.appendChild(el("div", "label", "Marking scheme"));
+        const tb = el("table", "rubric");
+        q.points.forEach((p, k) => {
+          const tr = el("tr");
+          const sel = el("select"); sel.id = "mark-" + q.id + "-" + k; sel.setAttribute("aria-label", "Marks for: " + p.t);
+          for (let v = 0; v <= p.m + 1e-9; v += 0.25) sel.add(new Option(fmt(v) + " / " + fmt(p.m), String(v)));
+          sel.value = String(clampQ(Number(at.awards[q.id][k]) || 0, p.m));
+          sel.addEventListener("change", () => {
+            at.awards[q.id][k] = Number(sel.value);
+            gotEl.textContent = fmt(at.awards[q.id].reduce((a, b) => a + b, 0)) + " / " + q.marks;
+            persist();
+          });
+          const td2 = el("td"); td2.appendChild(sel);
+          tr.append(el("td", null, p.t), td2);
+          tb.appendChild(tr);
+        });
+        box.appendChild(tb);
+        const det = el("details"); det.style.marginTop = "10px";
+        det.appendChild(el("summary", null, "Model answer"));
+        det.appendChild(el("div", "model", q.model));
+        box.appendChild(det);
+      }
+      run.appendChild(box);
+    });
+  }
+
+  function showHistory(ex) {
+    const run = runHeader(ex.title + ": Past results");
+    const mine = attempts.filter(a => a.examId === ex.classId);
+    if (!mine.length) { run.appendChild(el("div", "empty", "No attempts yet.")); return; }
+    const wrap = el("div", "table-wrap");
+    const t = el("table", "history");
+    const hr = el("tr"); ["Date", "Score", "%", "Result", "Marked by", ""].forEach(h => hr.appendChild(el("th", null, h)));
+    t.appendChild(hr);
+    mine.forEach(a => {
+      const p = a.score / a.max * 100;
+      const tr = el("tr");
+      const chip = el("td"); chip.appendChild(bandChip(p));
+      const open = el("td"); open.appendChild(btn("Open", "small", () => showResult(ex, Object.assign({}, a, { awards: JSON.parse(JSON.stringify(a.awards)), _note: "" }))));
+      tr.append(el("td", null, dateStr(a.createdAt)), el("td", null, fmt(a.score) + " / " + a.max), el("td", null, Math.round(p) + "%"), chip, el("td", null, a.markedBy === "claude" ? "Claude" : "Self"), open);
+      t.appendChild(tr);
+    });
+    wrap.appendChild(t);
+    run.appendChild(wrap);
+  }
+
   // ---------- Tabs, toast ----------
   function showView(v) {
     $("view-read").hidden = v !== "read";
     $("view-notes").hidden = v !== "notes";
+    $("view-exams").hidden = v !== "exams";
     $("tab-read").setAttribute("aria-selected", v === "read");
     $("tab-notes").setAttribute("aria-selected", v === "notes");
+    $("tab-exams").setAttribute("aria-selected", v === "exams");
     if (v === "notes") { clearSelection(); renderNotes(); }
+    if (v === "exams") { clearSelection(); }
   }
   $("tab-read").addEventListener("click", () => showView("read"));
   $("tab-notes").addEventListener("click", () => { showView("notes"); window.scrollTo(0, 0); });
+  $("tab-exams").addEventListener("click", () => { showView("exams"); showExamHome(); });
 
   let toastTimer;
   function toast(msg) {

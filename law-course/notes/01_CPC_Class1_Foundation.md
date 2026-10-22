@@ -101,7 +101,7 @@ The main question in the suit concerns a **civil right**, such as property, cont
 
 ===
 
-## Class 1 Test (30 marks)
+## Class 1 Test (21 marks)
 ### Section 1: Multiple choice (1 mark each)
 1. The CPC has how many Sections and Orders? (a) 158 Sections, 51 Orders (b) 151 Sections, 58 Orders (c) 160 Sections, 50 Orders (d) 158 Sections, 48 Orders
 2. Who can amend the Rules in the First Schedule for their state? (a) Parliament only (b) State Legislature (c) High Court (d) Supreme Court

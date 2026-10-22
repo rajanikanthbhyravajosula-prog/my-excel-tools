@@ -1,0 +1,109 @@
+{
+  "classId": "02-cpc",
+  "title": "CPC Comprehensive Test",
+  "questions": [
+    {"id": "q1", "type": "written", "marks": 1, "q": "Which section deals with res sub judice?",
+     "model": "CPC Section 10.", "points": [{"t": "S.10 CPC", "m": 1}]},
+    {"id": "q2", "type": "written", "marks": 1, "q": "What is the validity period of a caveat?",
+     "model": "90 days from the date it is lodged, unless the application is made before then: CPC S.148A(5).",
+     "points": [{"t": "90 days", "m": 0.75}, {"t": "S.148A (5)", "m": 0.25}]},
+    {"id": "q3", "type": "written", "marks": 1, "q": "Name the triple test for a temporary injunction.",
+     "model": "Prima facie case, balance of convenience, and irreparable injury (O.39 R.1 and R.2; Dalpat Kumar v. Prahlad Singh, 1992).",
+     "points": [{"t": "All three: prima facie case, balance of convenience, irreparable injury", "m": 1}]},
+    {"id": "q4", "type": "written", "marks": 1, "q": "Within what time must a written statement be filed in a commercial suit?",
+     "model": "120 days from service of summons, after which the right to file is forfeited: O.8 R.1 proviso as amended for commercial disputes by the Commercial Courts Act, 2015 (SCG Contracts v. K.S. Chamankar, 2019).",
+     "points": [{"t": "120 days", "m": 0.75}, {"t": "Says it is mandatory / O.8 R.1 as amended by the Commercial Courts Act", "m": 0.25}]},
+    {"id": "q5", "type": "written", "marks": 1, "q": "Which section bars a second appeal in money suits up to Rs 25,000?",
+     "model": "CPC Section 102.", "points": [{"t": "S.102 CPC", "m": 1}]},
+    {"id": "q6", "type": "written", "marks": 1, "q": "Which case held that a decree passed without inherent jurisdiction is a nullity?",
+     "model": "Kiran Singh v. Chaman Paswan (1954, SC).", "points": [{"t": "Kiran Singh v. Chaman Paswan", "m": 1}]},
+    {"id": "q7", "type": "written", "marks": 1, "q": "Under which Order and Rule is a plaint rejected?",
+     "model": "Order 7 Rule 11 CPC.", "points": [{"t": "O.7 R.11", "m": 1}]},
+    {"id": "q8", "type": "written", "marks": 1, "q": "What is the limitation period for executing a decree?",
+     "model": "12 years from when the decree becomes enforceable: Limitation Act, 1963, Article 136.",
+     "points": [{"t": "12 years", "m": 0.75}, {"t": "Article 136, Limitation Act", "m": 0.25}]},
+    {"id": "q9", "type": "written", "marks": 1, "q": "Which provision makes pre-institution mediation mandatory in commercial suits?",
+     "model": "Section 12A of the Commercial Courts Act, 2015 (mandatory unless urgent interim relief is sought; Patil Automation v. Rakheja Engineers, 2022).",
+     "points": [{"t": "S.12A Commercial Courts Act", "m": 1}]},
+    {"id": "q10", "type": "written", "marks": 1, "q": "Who decides questions relating to execution between the parties, and under which section?",
+     "model": "The executing court, not a separate suit: CPC Section 47.",
+     "points": [{"t": "The executing court", "m": 0.5}, {"t": "S.47 CPC", "m": 0.5}]},
+    {"id": "q11", "type": "written", "marks": 4, "q": "Distinguish S.10 from S.11, citing one case each.",
+     "model": "S.10 (res sub judice) applies when a matter directly and substantially in issue in a previously instituted suit is pending between the same parties before a competent court; the later suit's trial is stayed, not dismissed. S.11 (res judicata) applies when the matter has already been heard and finally decided by a competent court; the later suit is barred. S.10 prevents conflicting decisions by two courts at the same time; S.11 gives finality to decisions. S.10 bars only the trial, not the filing (Indian Bank v. Maharashtra State Co-op Marketing Federation, 1998), and needs the whole subject matter to be the same (Aspi Jal v. Khushroo Rustom Dadyburjor, 2013). Res judicata applies between stages of the same suit (Satyadhyan Ghosal v. Deorajin Debi, 1960) and to writ petitions (Daryao v. State of U.P., 1961).",
+     "points": [
+       {"t": "S.10: earlier matter pending; later suit stayed", "m": 1},
+       {"t": "S.11: matter already decided; later suit barred", "m": 1},
+       {"t": "Common or different conditions explained (same matter, same parties, competent court; or purpose)", "m": 1},
+       {"t": "A correct case for S.10 (Aspi Jal / Indian Bank)", "m": 0.5},
+       {"t": "A correct case for S.11 (Satyadhyan Ghosal / Daryao / Forward Construction)", "m": 0.5}
+     ]},
+    {"id": "q12", "type": "written", "marks": 4, "q": "Constructive res judicata, with an example.",
+     "model": "Explanation IV to CPC S.11: any matter which might and ought to have been made a ground of attack or defence in the former suit is deemed to have been directly and substantially in issue in that suit. A party cannot hold back a ground and use it in a second suit. Example: a tenant defending an eviction suit does not plead that the landlord's notice was invalid, though the point was available; after losing, the tenant cannot file a fresh suit on that ground. The principle applies to writ petitions and public interest litigation too (Forward Construction Co. v. Prabhat Mandal, 1986). Purpose: finality and preventing a multiplicity of suits.",
+     "points": [
+       {"t": "Explanation IV to S.11 identified", "m": 1},
+       {"t": "Correct meaning: 'might and ought to have been' raised is deemed raised and decided", "m": 1},
+       {"t": "A valid example", "m": 1},
+       {"t": "A case (Forward Construction) or the purpose of the rule", "m": 1}
+     ]},
+    {"id": "q13", "type": "written", "marks": 4, "q": "The grounds for rejecting a plaint, and the Dahiben (2020) case.",
+     "model": "Under CPC O.7 R.11, a plaint shall be rejected: (a) where it does not disclose a cause of action; (b) where the relief is undervalued and the plaintiff fails to correct the valuation within the time fixed; (c) where it is insufficiently stamped and the plaintiff fails to pay the court fee within the time fixed; (d) where the suit appears from the statements in the plaint to be barred by any law (e.g. limitation); (e) where it is not filed in duplicate; (f) where the plaintiff fails to comply with O.7 R.9. Only the plaint averments and documents filed with it are examined, not the defence (Saleem Bhai, 2003). In Dahiben v. Arvindbhai Kalyanji Bhanusali (2020), the Supreme Court restated these principles and held that a plaint that is clearly barred by limitation on its own averments, or is vexatious and meritless, must be rejected at the threshold so that the defendant is not dragged through a trial. Rejection is a deemed decree under S.2(2), appealable under S.96.",
+     "points": [
+       {"t": "O.7 R.11 cited", "m": 0.5},
+       {"t": "At least four of the six grounds (a)–(f) correctly stated", "m": 1.5},
+       {"t": "Only the plaint averments are examined (Saleem Bhai) or rejection is a deemed decree", "m": 0.5},
+       {"t": "Dahiben (2020) correctly explained (threshold rejection, e.g. limitation, clever drafting)", "m": 1.5}
+     ]},
+    {"id": "q14", "type": "written", "marks": 4, "q": "The directions in Rahul S. Shah v. Jinendra Kumar Gandhi (2021).",
+     "model": "The Supreme Court gave 14 directions to cut delays in execution, including: (1) in suits for possession, the trial court should examine the parties and documents under O.10 and O.11 to find out third-party interests and the physical state of the property at the suit stage; (2) the court may appoint a commissioner to record the property's present status and may restrain alienation during the suit; (3) the decree must describe the property clearly so it can be executed; (4) execution proceedings must be completed within 6 months of filing, with delays explained in writing; (5) the executing court must decide third-party objections under O.21 R.97–101 within the execution, not send parties to a separate suit; (6) the executing court cannot go behind the decree; (7) frivolous objections should be discouraged with compensatory costs; (8) High Courts were asked to monitor execution cases through their subordinate courts.",
+     "points": [
+       {"t": "Execution to be completed within 6 months", "m": 1},
+       {"t": "Third-party interests and property status to be ascertained at the suit stage (O.10 / O.11, commissioner)", "m": 1},
+       {"t": "Third-party objections decided within execution under O.21 R.97–101", "m": 1},
+       {"t": "Any other valid direction (costs for frivolous objections, clear decree, HC monitoring, no going behind the decree)", "m": 1}
+     ]},
+    {"id": "q15", "type": "written", "marks": 4, "q": "Review vs Revision vs Appeal.",
+     "model": "Appeal (S.96 first appeal, S.100 second appeal, S.104 / O.43 appeals from orders) goes to a higher court and is a rehearing on facts and law (second appeal only on a substantial question of law); time limit 30 or 90 days (Limitation Act Art.116). Review (S.114, O.47) is by the same court that passed the decree or order, on limited grounds: discovery of new and important evidence, an error apparent on the face of the record, or any other sufficient reason; it is not an appeal in disguise (Kamlesh Verma v. Mayawati, 2013); time limit 30 days (Art.124). Revision (S.115) is by the High Court over subordinate courts in cases where no appeal lies, limited to jurisdictional errors (acting without jurisdiction, failing to exercise it, or acting illegally or with material irregularity); since 1999 it does not lie against an interlocutory order unless the order, if made in the applicant's favour, would have finally disposed of the suit.",
+     "points": [
+       {"t": "Appeal: higher court, rehearing on facts and law, S.96 / S.100", "m": 1},
+       {"t": "Review: same court, S.114 / O.47, limited grounds", "m": 1},
+       {"t": "Revision: High Court, S.115, jurisdictional errors only, where no appeal lies", "m": 1},
+       {"t": "A time limit, case (Kamlesh Verma) or the 1999 limit on revision", "m": 1}
+     ]},
+    {"id": "q16a", "type": "written", "marks": 5,
+     "q": "Practical problem. A caterer working at your Sampradaya Hall event causes Rs 3 lakh of damage. You get an ex parte decree in Nandyal. The caterer now lives in Hyderabad and has transferred their van to a relative.\n(a) How will you execute the decree in Hyderabad?",
+     "model": "Under CPC S.38 a decree is executed by the court that passed it or the court to which it is sent. Apply to the Nandyal court under S.39 (and O.21 R.5–6) to transfer the decree to the competent court in Hyderabad, because the judgment-debtor resides and has property there (S.39(1)(a)–(c)). The Nandyal court sends a copy of the decree, a certificate of non-satisfaction and the order for execution. The Hyderabad court then executes it with the same powers as if it had passed the decree (S.42), on an execution application under O.21 R.10–11. Modes under S.51: attachment and sale of the caterer's movable and immovable property (O.21 R.43, R.54), attachment of bank accounts or salary (subject to S.60 exemptions), and, if needed, arrest and civil prison (S.58: up to 3 months for a decree over Rs 5,000) after a show-cause notice (O.21 R.37). File within 12 years (Art.136).",
+     "points": [
+       {"t": "Transfer of decree under S.39 (with S.38) to the Hyderabad court", "m": 1.5},
+       {"t": "Transferee court's powers under S.42 / execution application under O.21 R.10–11", "m": 1},
+       {"t": "Modes of execution under S.51 (attachment and sale, arrest)", "m": 1.5},
+       {"t": "Any further correct detail: S.60 exemptions, S.58 detention limits, O.21 R.37 notice, Art.136", "m": 1}
+     ]},
+    {"id": "q16b", "type": "written", "marks": 5,
+     "q": "(b) What can you do about the van transfer?",
+     "model": "If the van was transferred after attachment, the transfer is void against the decree-holder under CPC S.64, and you proceed with sale. If it was transferred before attachment, to defeat creditors, the transfer is voidable at the creditor's option under Transfer of Property Act S.53 (fraudulent transfer); file a suit (on behalf of all creditors, a representative suit) to set it aside, showing the intention to defeat or delay creditors, e.g. transfer to a relative for no or low price after the claim arose. Attach the van; if the relative objects, the executing court decides the claim under O.21 R.58 within the execution, and the burden is on the relative to show genuine possession on their own account. You may also seek an injunction against further alienation.",
+     "points": [
+       {"t": "Transfer after attachment is void under CPC S.64", "m": 1.5},
+       {"t": "Transfer before attachment is voidable as a fraudulent transfer under TPA S.53", "m": 1.5},
+       {"t": "Claims and objections to attachment decided under O.21 R.58", "m": 1},
+       {"t": "Evidence of fraud (relative, no consideration, timing) or injunction against further alienation", "m": 1}
+     ]},
+    {"id": "q16c", "type": "written", "marks": 5,
+     "q": "(c) The caterer applies to set aside the ex parte decree after 45 days. What is your objection?",
+     "model": "The application under CPC O.9 R.13 is time-barred: Limitation Act, 1963, Article 123 allows 30 days from the date of the decree, or, where the summons was not duly served, from the date the applicant knew of the decree. Object that the summons was duly served (produce the proof of service) so time runs from the decree date and 45 days is beyond limit; that no application for condonation of delay under Limitation Act S.5 with sufficient cause for each day's delay has been filed, or the cause shown is not sufficient. On merits: under the proviso to O.9 R.13 the decree cannot be set aside merely for an irregularity in service if the defendant had notice of the hearing date and enough time to appear, and no 'sufficient cause' for non-appearance is shown (though courts read it liberally: G.P. Srivastava v. R.K. Raizada, 2000).",
+     "points": [
+       {"t": "Application under O.9 R.13 is time-barred", "m": 1},
+       {"t": "Limitation Act Art.123: 30 days from decree (or from knowledge if summons not served)", "m": 1.5},
+       {"t": "No sufficient cause or condonation under Limitation Act S.5", "m": 1.5},
+       {"t": "Proviso to O.9 R.13 (mere irregularity in service with notice is not enough) or G.P. Srivastava", "m": 1}
+     ]},
+    {"id": "q16d", "type": "written", "marks": 5,
+     "q": "(d) What should you have done before judgment to protect the claim?",
+     "model": "Apply for attachment before judgment under CPC O.38 R.5, showing by affidavit that the defendant, with intent to obstruct or delay any decree, is about to dispose of or remove property (such as the van) from the court's jurisdiction; the court may order security or conditional attachment. If the defendant was about to abscond or leave the jurisdiction, seek arrest before judgment or security for appearance under O.38 R.1. Seek a temporary injunction under O.39 R.1(b) restraining the defendant from alienating or disposing of the van and other property. Consider a summary suit under O.37 if the claim was on a written contract, for faster recovery. Once property is attached before judgment, any later private transfer of it is void against the claim (S.64).",
+     "points": [
+       {"t": "Attachment before judgment under O.38 R.5", "m": 2},
+       {"t": "Arrest before judgment or security under O.38 R.1", "m": 1},
+       {"t": "Temporary injunction against alienation under O.39 R.1(b)", "m": 1.5},
+       {"t": "Any further valid step (summary suit O.37, S.64 effect, affidavit of intent to defeat)", "m": 0.5}
+     ]}
+  ]
+}
