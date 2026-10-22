@@ -176,6 +176,45 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
 .history td { padding: 8px 10px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .status-line { font-size: 0.9rem; color: var(--muted); margin: 8px 0; }
 
+/* Discussion pane: fixed beside the lesson, scrolls on its own */
+.discuss { position: fixed; right: 0; top: var(--header-h, 60px); bottom: 0; width: 420px; z-index: 15;
+  background: var(--surface); border-left: 1px solid var(--line); display: flex; flex-direction: column;
+  padding-right: env(safe-area-inset-right, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.discuss-head { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: center; }
+.discuss-head .dtitle { font-family: var(--font-read); font-weight: 700; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.discuss-head .dsub { font-size: 0.78rem; color: var(--muted); }
+.discuss-head .dactions { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+.msgs { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.msg { min-width: 0; overflow-wrap: anywhere; }
+.msg.user { align-self: flex-end; max-width: 88%; background: var(--accent); color: var(--accent-ink); border-radius: 12px 12px 2px 12px; padding: 8px 12px; white-space: pre-wrap; }
+.msg.assistant { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-family: var(--font-read); font-size: 0.96rem; line-height: 1.55; }
+.msg.assistant h1, .msg.assistant h2, .msg.assistant h3 { font-size: 1rem; margin: 10px 0 4px; color: var(--accent); }
+.msg.assistant p { margin: 0 0 8px; }
+.msg.assistant ul, .msg.assistant ol { margin: 0 0 8px; padding-left: 1.3em; }
+.msg.assistant .callout { background: var(--callout); border-left: 3px solid #B8860B; padding: 6px 10px; border-radius: 4px; margin: 6px 0; }
+.msg.assistant table { border-collapse: collapse; width: 100%; font-family: var(--font-ui); font-size: 0.82rem; }
+.msg.assistant th { background: var(--accent); color: var(--accent-ink); text-align: left; padding: 5px 8px; }
+.msg.assistant td { border-top: 1px solid var(--line); padding: 5px 8px; vertical-align: top; }
+.msg-actions { display: flex; gap: 6px; margin-top: 8px; font-family: var(--font-ui); }
+.suggest { display: grid; gap: 8px; }
+.suggest p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.suggest button { text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 0.9rem; }
+.suggest button:hover { background: var(--accent-soft); }
+.chat-notice { margin: 0; padding: 6px 14px; font-size: 0.85rem; color: var(--danger); }
+.composer { border-top: 1px solid var(--line); padding: 10px 14px; display: grid; gap: 6px; }
+.composer textarea { width: 100%; min-height: 56px; max-height: 30vh; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); resize: vertical; }
+.composer .crow { display: flex; gap: 8px; align-items: center; }
+.composer .hint2 { font-size: 0.75rem; color: var(--muted); margin-right: auto; }
+#btn-discuss[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+@media (min-width: 1100px) {
+  body.discuss-open main.wrap { max-width: none; margin: 0; padding-right: calc(420px + 24px); }
+  body.discuss-open .selbar { right: 420px; }
+}
+@media (max-width: 1099px) {
+  .discuss { width: auto; left: 0; border-left: 0; padding-left: env(safe-area-inset-left, 0px); }
+  body.discuss-open .selbar { display: none; }
+}
+
 @media (max-width: 860px) {
   .read-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
   nav.classes { display: none; }
@@ -194,6 +233,7 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     <button id="tab-notes" role="tab" aria-selected="false">My Notes <span class="count" id="note-count">(0)</span></button>
     <button id="tab-exams" role="tab" aria-selected="false">Exams</button>
   </div>
+  <button class="btn" id="btn-discuss" aria-pressed="false">Discuss</button>
 </header>
 
 <main class="wrap">
@@ -289,10 +329,28 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
   </section>
 </main>
 
+<aside class="discuss" id="discuss" hidden aria-label="Discussion">
+  <div class="discuss-head">
+    <div style="min-width:0;flex:1">
+      <div class="dtitle" id="discuss-title">Discuss</div>
+      <div class="dsub">Claude answers using the class you have open.</div>
+    </div>
+    <div class="dactions" id="discuss-actions"></div>
+  </div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <p class="chat-notice" id="chat-notice" hidden></p>
+  <form class="composer" id="composer">
+    <label for="chat-input" class="hint2" style="margin:0">Your question</label>
+    <textarea id="chat-input" rows="2" placeholder="Ask anything about this class, e.g. What is the difference between S.10 and S.11?"></textarea>
+    <div class="crow"><span class="hint2">Enter to send · Shift+Enter for a new line</span><button type="submit" class="btn primary small" id="chat-send">Send</button></div>
+  </form>
+</aside>
+
 <div class="selbar" id="selbar" hidden>
   <div class="inner">
     <div class="preview" id="sel-preview"></div>
     <button class="btn" id="sel-cancel">Cancel</button>
+    <button class="btn" id="sel-discuss">Discuss this</button>
     <button class="btn mark" id="sel-important">Add as important</button>
     <button class="btn primary" id="sel-add">Add to notes</button>
   </div>
@@ -392,6 +450,7 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     $("store-status").textContent = reason || "Saved in this browser only";
     renderAll();
     useLocalAttempts();
+    useLocalChats();
   }
 
   async function connect() {
@@ -419,6 +478,13 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
         async add(a) { const ref = acol.doc(); await ref.set(a); return ref.id; },
         async update(id, patch) { await acol.doc(id).update(patch); },
       };
+      const ccol = db.doc("data/users/" + uid + "/profile").collection("chats");
+      chatStore = {
+        async load(cid) { const snap = await ccol.doc(cid).get(); return snap.exists ? (snap.data().messages || []).slice() : []; },
+        async save(cid, msgs) { await ccol.doc(cid).set({ messages: msgs, updatedAt: Date.now() }); },
+      };
+      chats = {}; chatClassLoaded = null;
+      if (discussOpen) loadChat();
       examStatus = "Results saved privately to your account";
       renderExamHome();
       acol.orderBy("createdAt", "desc").limit(500).onSnapshot(snap => {
@@ -459,6 +525,7 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     document.querySelectorAll("#class-nav button").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
     $("class-select").value = id;
     markNotedSections();
+    if (discussOpen) loadChat();
     showView("read");
     if (anchor) {
       const el = document.getElementById(anchor);
@@ -489,7 +556,7 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     pv.append("Selected: ", m);
     $("selbar").hidden = false;
   });
-  ["sel-add", "sel-important", "sel-cancel"].forEach(id => $(id).addEventListener("pointerdown", e => e.preventDefault()));
+  ["sel-add", "sel-important", "sel-cancel", "sel-discuss"].forEach(id => $(id).addEventListener("pointerdown", e => e.preventDefault()));
   $("sel-cancel").addEventListener("click", clearSelection);
   $("sel-add").addEventListener("click", () => saveSelection(false));
   $("sel-important").addEventListener("click", () => saveSelection(true));
@@ -988,6 +1055,216 @@ article.lesson .has-note { box-shadow: inset 3px 0 0 var(--mark); }
     wrap.appendChild(t);
     run.appendChild(wrap);
   }
+
+  // ---------- Discussion pane ----------
+  const CHAT_MAX = 40;
+  let chats = {};
+  let chatStore = null;
+  let chatClassLoaded = null;
+  let chatCtl = null;
+  let discussOpen = false;
+  const SUGGESTIONS = [
+    "Explain this class in simple words, step by step.",
+    "What are the 5 most important sections in this class? Give a memory trick for each.",
+    "Explain one concept from this class with an example from my function hall.",
+    "Give me 5 practice questions on this class. I will answer and you mark them.",
+  ];
+
+  function useLocalChats() {
+    chatStore = {
+      async load(cid) { try { return JSON.parse(localStorage.getItem("law-study-desk-chat-" + cid) || "[]"); } catch (e) { return []; } },
+      async save(cid, msgs) { localStorage.setItem("law-study-desk-chat-" + cid, JSON.stringify(msgs)); },
+    };
+    chats = {}; chatClassLoaded = null;
+    if (discussOpen) loadChat();
+  }
+
+  function setDiscuss(open, prefill) {
+    discussOpen = open;
+    $("discuss").hidden = !open;
+    document.body.classList.toggle("discuss-open", open);
+    $("btn-discuss").setAttribute("aria-pressed", open ? "true" : "false");
+    if (!open) return;
+    loadChat();
+    const ta = $("chat-input");
+    if (prefill) ta.value = prefill + (ta.value ? "\n" + ta.value : "");
+    ta.focus();
+  }
+
+  async function loadChat() {
+    const cid = currentClass;
+    $("discuss-title").textContent = "Discuss: " + byId[cid].short;
+    renderDiscussActions();
+    if (chatClassLoaded === cid) { renderChat(); return; }
+    chatClassLoaded = cid;
+    if (!chats[cid]) {
+      $("msgs").innerHTML = "";
+      $("msgs").appendChild(el("p", "status-line", "Loading your discussion…"));
+      let msgs = [];
+      try { if (chatStore) msgs = await chatStore.load(cid); } catch (e) {}
+      if (!chats[cid]) chats[cid] = msgs;
+    }
+    if (chatClassLoaded === cid) renderChat();
+  }
+
+  function renderDiscussActions(confirming) {
+    const box = $("discuss-actions"); box.innerHTML = "";
+    if (confirming) {
+      box.append(el("span", "hint2", "Clear this discussion?"),
+        btn("Yes, clear", "small danger", async () => {
+          const cid = chatClassLoaded; chats[cid] = [];
+          renderDiscussActions(); renderChat();
+          try { if (chatStore) await chatStore.save(cid, []); } catch (e) {}
+        }),
+        btn("Keep", "small", () => renderDiscussActions()));
+      return;
+    }
+    box.append(btn("Clear", "small", () => renderDiscussActions(true)),
+      btn("Close", "small", () => setDiscuss(false)));
+  }
+
+  function chatNotice(msg) { const n = $("chat-notice"); n.textContent = msg || ""; n.hidden = !msg; }
+
+  function plainText(md) { return md.replace(/\*\*/g, "").replace(/^#+\s*/gm, "").trim(); }
+
+  function msgEl(m, i, msgs) {
+    if (m.role === "user") return el("div", "msg user", m.content);
+    const d = el("div", "msg assistant");
+    const body = el("div");
+    body.innerHTML = renderLesson({ id: "m" + i, md: m.content });
+    d.appendChild(body);
+    const acts = el("div", "msg-actions");
+    acts.appendChild(btn("Save to notes", "small", async () => {
+      if (!store) { toast("Still connecting. Try again in a moment."); return; }
+      const q = (msgs[i - 1] && msgs[i - 1].role === "user") ? msgs[i - 1].content : "";
+      const cid = chatClassLoaded;
+      try {
+        await store.add({ text: plainText(m.content).slice(0, 4000), classId: cid, classTitle: byId[cid].short,
+          section: "Discussion: " + (q.length > 80 ? q.slice(0, 80) + "…" : q), comment: "", important: false, createdAt: Date.now() });
+        toast("Saved to My Notes");
+      } catch (e) { toast(saveError(e)); }
+    }));
+    acts.appendChild(btn("Copy", "small", () => {
+      try {
+        navigator.clipboard.writeText(plainText(m.content)).then(() => toast("Copied"), () => toast("Copy is not available here. Select the text instead."));
+      } catch (e) { toast("Copy is not available here. Select the text instead."); }
+    }));
+    d.appendChild(acts);
+    return d;
+  }
+
+  function renderChat() {
+    const box = $("msgs"); box.innerHTML = "";
+    const msgs = chats[chatClassLoaded] || [];
+    if (!msgs.length) {
+      const sg = el("div", "suggest");
+      sg.appendChild(el("p", null, "Ask any question about this class. Answers will cite the sections and cases. Or start with one of these:"));
+      SUGGESTIONS.forEach(t => sg.appendChild(btn(t, "", () => sendChat(t))));
+      box.appendChild(sg);
+      return;
+    }
+    msgs.forEach((m, i) => box.appendChild(msgEl(m, i, msgs)));
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function tutorBrief(cid) {
+    const lesson = byId[cid].md.slice(0, 40000);
+    return [
+      "You are a patient law tutor for one student: an Indian LLB graduate (1994) who never practised and is now relearning law from the basics as a fresher, aiming to enrol with the Bar Council of Andhra Pradesh and pass the AIBE. The student runs SLNS Vaibhavam Function Hall in Nandyal, Andhra Pradesh (three halls: Sampanna for 300 guests, Sampradaya for 800, Samriddhi for 1000) and has traded shares since 2000.",
+      "How to answer:",
+      "- Plain, simple English. Short paragraphs, short headings and bullet lists. Use Markdown: **bold**, '- ' bullets, '1. ' numbered lists, and | tables | where a comparison helps.",
+      "- Always cite the section or Article where a concept is defined and the sections that apply. Where a law was replaced, give the old number too, e.g. BNS S.303 (old IPC S.378), BNSS S.173 (old CrPC S.154), BSA S.104 (old Evidence Act S.101).",
+      "- Cite landmark and recent Supreme Court cases where useful, with the year. If you are unsure of a section number or citation, say so instead of guessing.",
+      "- Use examples from the student's function hall business or share trading where they fit, and give a memory trick where it helps.",
+      "- Keep answers focused, about 150 to 350 words, unless the student asks for more.",
+      "- If asked for practice questions, give them without answers, then mark the student's answers when they reply, giving marks and what was missing.",
+      "",
+      "The class the student has open (use it as context; answer other law questions too):",
+      "<lesson>",
+      lesson,
+      "</lesson>",
+    ].join("\n");
+  }
+
+  function chatErr(e) {
+    const code = e && e.code;
+    if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared") return "Discussion needs permission to use Claude on this page. Reopen the page and allow it when asked.";
+    if (code === "rate_limited") return "Claude is busy or your usage limit is reached. Try again in a little while.";
+    if (code === "session_expired") return "Your session has expired. Sign in again, then retry.";
+    if (code === "prompt_too_large") return "This discussion is too long. Clear it and start a new one.";
+    return "Claude could not answer this time. Send your question again.";
+  }
+
+  function setSending(on) {
+    const b = $("chat-send");
+    b.textContent = on ? "Stop" : "Send";
+    b.classList.toggle("danger", on); b.classList.toggle("primary", !on);
+    b.type = on ? "button" : "submit";
+  }
+
+  async function sendChat(text) {
+    text = (text || "").trim();
+    if (!text || chatCtl) return;
+    chatNotice("");
+    if (!sampleFn) { chatNotice("Discussion needs Claude, which is not available in this view. Open the page in Claude while signed in."); return; }
+    const cid = chatClassLoaded || currentClass;
+    const msgs = chats[cid] = (chats[cid] || []).slice();
+    msgs.push({ role: "user", content: text, at: Date.now() });
+    $("chat-input").value = "";
+    renderChat();
+    const bubble = el("div", "msg assistant");
+    const body = el("div", null, "Thinking…");
+    bubble.appendChild(body);
+    $("msgs").appendChild(bubble);
+    const box = $("msgs");
+    box.scrollTop = box.scrollHeight;
+    const turns = [{ role: "user", content: tutorBrief(cid) }]
+      .concat(msgs.slice(-20).map(m => ({ role: m.role, content: m.content })));
+    chatCtl = new AbortController();
+    setSending(true);
+    try {
+      const res = await sampleFn(turns, {
+        signal: chatCtl.signal, cache: false,
+        onText: ({ text: t }) => {
+          const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+          body.innerHTML = renderLesson({ id: "live", md: t });
+          if (atBottom) box.scrollTop = box.scrollHeight;
+        },
+      });
+      msgs.push({ role: "assistant", content: res.text + (res.truncated ? "\n\n*(This answer was cut short. Ask me to continue.)*" : ""), at: Date.now() });
+    } catch (e) {
+      if (e && e.text) msgs.push({ role: "assistant", content: e.text + "\n\n*(Stopped before the end.)*", at: Date.now() });
+      if (!e || e.code !== "cancelled") chatNotice(chatErr(e));
+    } finally {
+      chatCtl = null;
+      setSending(false);
+      chats[cid] = msgs.slice(-CHAT_MAX);
+      if (chatClassLoaded === cid) renderChat();
+      if (chatStore) {
+        chatStore.save(cid, chats[cid].map(m => ({ role: m.role, content: m.content.slice(0, 6000), at: m.at })))
+          .catch(() => toast("Could not save this discussion."));
+      }
+    }
+  }
+
+  $("composer").addEventListener("submit", e => { e.preventDefault(); sendChat($("chat-input").value); });
+  $("chat-send").addEventListener("click", e => { if (chatCtl) { e.preventDefault(); chatCtl.abort(); } });
+  $("chat-input").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChat($("chat-input").value); }
+  });
+  $("btn-discuss").addEventListener("click", () => setDiscuss(!discussOpen));
+  $("sel-discuss").addEventListener("click", () => {
+    const t = pending ? pending.text : "";
+    clearSelection();
+    setDiscuss(true, t ? "Please explain this:\n\"" + (t.length > 1500 ? t.slice(0, 1500) + "…" : t) + "\"" : "");
+  });
+  (function trackHeader() {
+    const hdr = document.querySelector("header.top");
+    const setH = () => document.documentElement.style.setProperty("--header-h", Math.round(hdr.getBoundingClientRect().bottom) + "px");
+    setH();
+    if (window.ResizeObserver) new ResizeObserver(setH).observe(hdr);
+    window.addEventListener("resize", setH);
+  })();
 
   // ---------- Tabs, toast ----------
   function showView(v) {
