@@ -207,7 +207,7 @@ The order is chosen so that each subject builds on the previous one, starting wi
 > **Total: about 40 classes.** Each class comes with its own PDF: the lesson, landmark and recent cases, memory tricks, a time-limit chart where relevant, and a test.
 
 ## Part 5: How Each Class Works
-1. **Lesson**: the important sections explained simply, with examples from your own business.
+1. **Lesson**: the important sections explained simply, with examples from your own business. **Every concept states the section where it is defined and the sections that apply.** Where a law has been replaced, the old section number is given too, e.g. "BNS S.303 (old IPC S.378)".
 2. **Cases**: classic landmark judgments plus recent Supreme Court rulings.
 3. **Tricks**: mnemonics and comparison tables to help you remember.
 4. **Test**: one-line answers, short notes and a practical problem. You reply and I grade.
